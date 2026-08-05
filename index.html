@@ -59,6 +59,14 @@
     .btn-primary:hover {
       background: #16325c;
     }
+    .btn-success {
+      background: #059669;
+      border-color: #059669;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #047857;
+    }
     .filter-section {
       display: flex;
       flex-wrap: wrap;
@@ -201,7 +209,7 @@
       border-radius: 20px;
       padding: 25px;
       width: 90%;
-      max-width: 520px;
+      max-width: 580px;
       box-shadow: 0 25px 50px rgba(0,0,0,0.15);
       max-height: 90vh;
       overflow-y: auto;
@@ -237,14 +245,82 @@
     }
     .form-actions {
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
       margin-top: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .form-actions-right {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+    .smart-parse-section {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .smart-parse-section label {
+      color: #065f46;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .smart-parse-section textarea {
+      border-color: #bbf7d0;
+      background: white;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .parse-result {
+      font-size: 13px;
+      color: #065f46;
+      background: #d1fae5;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+      display: none;
+    }
+    .parse-result.show {
+      display: block;
     }
     .text-muted {
       color: #6b7280;
       font-size: 13px;
       margin-top: 5px;
+    }
+    .tab-buttons {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #d1d5db;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #f9fafb;
+      color: #6b7280;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 0;
+      box-shadow: none;
+      font-size: 14px;
+    }
+    .tab-btn.active {
+      background: #1e3c72;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
@@ -322,62 +398,88 @@
   <div class="modal" id="formModal">
     <div class="modal-content">
       <h2 id="modalTitle">添加申请</h2>
-      <form id="appForm">
-        <input type="hidden" id="recordId">
-        <div class="form-group">
-          <label>公司名称 *</label>
-          <input type="text" id="company" required placeholder="例如：字节跳动">
+      
+      <!-- Tab 切换 -->
+      <div class="tab-buttons" id="tabButtons">
+        <button class="tab-btn active" data-tab="manual">✍️ 手动填写</button>
+        <button class="tab-btn" data-tab="smart">🤖 智能解析</button>
+      </div>
+
+      <!-- 智能解析 Tab -->
+      <div class="tab-content" id="tabSmart">
+        <div class="smart-parse-section">
+          <label>📋 粘贴招聘信息</label>
+          <textarea id="parseInput" rows="6" placeholder="粘贴包含公司名、职位、地点等信息的文本...&#10;&#10;例如：&#10;【字节跳动】2026校招 - 后端开发工程师（北京）&#10;岗位要求：熟悉Java/Go..."></textarea>
+          <button type="button" class="btn-success" id="parseBtn">🔍 自动识别填充</button>
+          <div class="parse-result" id="parseResult"></div>
         </div>
-        <div class="form-group">
-          <label>职位 *</label>
-          <input type="text" id="position" required placeholder="例如：后端开发工程师">
+        <div class="text-muted" style="font-size:12px;">
+          💡 支持识别格式：公司名 + 职位名 + 地点。如"腾讯招聘前端开发工程师（深圳）"、"阿里巴巴-产品经理-杭州"
         </div>
-        <div class="form-group">
-          <label>岗位类别</label>
-          <select id="category">
-            <option value="">请选择</option>
-            <option value="技术">技术</option>
-            <option value="产品">产品</option>
-            <option value="设计">设计</option>
-            <option value="运营">运营</option>
-            <option value="市场">市场</option>
-            <option value="职能">职能</option>
-            <option value="其他">其他</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>工作地点</label>
-          <input type="text" id="location" placeholder="例如：北京">
-        </div>
-        <div class="form-group">
-          <label>投递日期</label>
-          <input type="date" id="applyDate">
-        </div>
-        <div class="form-group">
-          <label>当前进度</label>
-          <select id="status">
-            <option value="待投递">待投递</option>
-            <option value="已投递">已投递</option>
-            <option value="测评">测评</option>
-            <option value="笔试">笔试</option>
-            <option value="一面">一面</option>
-            <option value="二面">二面</option>
-            <option value="HR面">HR面</option>
-            <option value="终面">终面</option>
-            <option value="Offer">Offer</option>
-            <option value="拒信">拒信</option>
-            <option value="已签约">已签约</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>备注</label>
-          <textarea id="note" rows="2" placeholder="例如：笔试时间、HR联系方式..."></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="button" id="cancelBtn">取消</button>
-          <button type="submit" class="btn-primary">保存</button>
-        </div>
-      </form>
+      </div>
+
+      <!-- 手动填写 Tab -->
+      <div class="tab-content active" id="tabManual">
+        <form id="appForm">
+          <input type="hidden" id="recordId">
+          <div class="form-group">
+            <label>公司名称 *</label>
+            <input type="text" id="company" required placeholder="例如：字节跳动">
+          </div>
+          <div class="form-group">
+            <label>职位 *</label>
+            <input type="text" id="position" required placeholder="例如：后端开发工程师">
+          </div>
+          <div class="form-group">
+            <label>岗位类别</label>
+            <select id="category">
+              <option value="">请选择</option>
+              <option value="技术">技术</option>
+              <option value="产品">产品</option>
+              <option value="设计">设计</option>
+              <option value="运营">运营</option>
+              <option value="市场">市场</option>
+              <option value="职能">职能</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>工作地点</label>
+            <input type="text" id="location" placeholder="例如：北京">
+          </div>
+          <div class="form-group">
+            <label>投递日期</label>
+            <input type="date" id="applyDate">
+          </div>
+          <div class="form-group">
+            <label>当前进度</label>
+            <select id="status">
+              <option value="待投递">待投递</option>
+              <option value="已投递">已投递</option>
+              <option value="测评">测评</option>
+              <option value="笔试">笔试</option>
+              <option value="一面">一面</option>
+              <option value="二面">二面</option>
+              <option value="HR面">HR面</option>
+              <option value="终面">终面</option>
+              <option value="Offer">Offer</option>
+              <option value="拒信">拒信</option>
+              <option value="已签约">已签约</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>备注</label>
+            <textarea id="note" rows="2" placeholder="例如：笔试时间、HR联系方式..."></textarea>
+          </div>
+          <div class="form-actions">
+            <div></div>
+            <div class="form-actions-right">
+              <button type="button" id="cancelBtn">取消</button>
+              <button type="submit" class="btn-primary">保存</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -388,7 +490,223 @@
       const STORAGE_KEY = 'qiuzhao_applications_v2';
       
       let applications = [];
+      let currentEditId = null; // 记录当前是否在编辑模式
 
+      // ============ 智能解析核心逻辑 ============
+      
+      // 知名公司关键词库（可自行扩展）
+      const KNOWN_COMPANIES = [
+        '阿里巴巴', '阿里', '腾讯', '字节跳动', '字节', '百度', '美团', '滴滴', 
+        '京东', '拼多多', '网易', '小米', '华为', 'OPPO', 'vivo', '快手',
+        '哔哩哔哩', 'B站', '小红书', '蚂蚁集团', '蚂蚁', '微众银行', 'Shopee',
+        'Google', '谷歌', 'Microsoft', '微软', 'Amazon', '亚马逊', 'Apple', '苹果',
+        'Meta', 'Facebook', 'Tesla', '特斯拉', '宁德时代', '比亚迪', '大疆',
+        '商汤', '旷视', '依图', '寒武纪', '地平线', '蔚来', '理想', '小鹏',
+        'SHEIN', '米哈游', '莉莉丝', '叠纸', '鹰角', '完美世界', '搜狐', 
+        '新浪', '微博', '360', '奇虎', '携程', '去哪儿', '同程', '途牛',
+        '中国移动', '中国电信', '中国联通', '招商银行', '工商银行', '建设银行',
+        '中信证券', '中金', '华泰证券', '德勤', '普华永道', '安永', '毕马威',
+        '宝洁', '联合利华', '欧莱雅', '玛氏', '雀巢', '百事', '可口可乐',
+        '一汽', '上汽', '东风', '长安', '吉利', '长城', '三一重工',
+        '海康威视', '大华', '中兴', '联想', '浪潮', '新华三', '深信服'
+      ];
+
+      // 城市关键词
+      const CITIES = [
+        '北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京',
+        '西安', '重庆', '苏州', '天津', '长沙', '郑州', '东莞', '青岛',
+        '合肥', '佛山', '宁波', '昆明', '沈阳', '大连', '厦门', '福州',
+        '济南', '无锡', '常州', '南通', '徐州', '温州', '嘉兴', '绍兴',
+        '新加坡', '硅谷', '纽约', '伦敦', '东京', '首尔', '柏林',
+        '远程', 'Remote', '不限'
+      ];
+
+      // 岗位类别关键词映射
+      const CATEGORY_KEYWORDS = {
+        '技术': ['开发', '工程师', '前端', '后端', '全栈', '算法', '数据', 'AI', 
+                '测试', '运维', 'SRE', '架构', 'Java', 'Python', 'Go', 'C++',
+                'iOS', 'Android', '客户端', '服务端', '安全', '嵌入式', '芯片',
+                '硬件', '机器学习', '深度学习', 'NLP', 'CV', '推荐', '搜索',
+                'Software', 'Engineer', 'Developer', 'SDE', '技术'],
+        '产品': ['产品经理', '产品', 'PM', 'Product Manager', '产品策划', '产品运营'],
+        '设计': ['设计', 'UI', 'UX', '交互', '视觉', '插画', 'Designer', '体验'],
+        '运营': ['运营', '内容', '新媒体', '社群', '用户运营', '活动运营'],
+        '市场': ['市场', '营销', '品牌', '销售', '商务', '公关', '广告', '渠道'],
+        '职能': ['HR', '人力', '财务', '法务', '行政', '招聘', '薪酬', '会计'],
+      };
+
+      function parseText(text) {
+        if (!text || !text.trim()) return null;
+        
+        const result = {
+          company: '',
+          position: '',
+          location: '',
+          category: ''
+        };
+
+        const cleanText = text.replace(/\s+/g, ' ').trim();
+
+        // 1. 识别公司名（优先匹配知名公司）
+        for (const company of KNOWN_COMPANIES) {
+          if (cleanText.includes(company)) {
+            // 取最长的匹配
+            if (company.length > result.company.length) {
+              result.company = company;
+            }
+          }
+        }
+
+        // 2. 识别地点
+        for (const city of CITIES) {
+          // 匹配格式：(城市) 或 【城市】 或 -城市 或 城市
+          if (cleanText.includes(city)) {
+            result.location = city;
+            break;
+          }
+        }
+        // 也尝试匹配括号内的地点
+        const bracketMatch = cleanText.match(/[（(]([^)）]+)[)）]/);
+        if (bracketMatch && !result.location) {
+          const inside = bracketMatch[1];
+          for (const city of CITIES) {
+            if (inside.includes(city)) {
+              result.location = city;
+              break;
+            }
+          }
+        }
+
+        // 3. 识别职位（取公司名后的关键部分）
+        let positionText = cleanText;
+        if (result.company) {
+          // 去掉公司名之前的内容，取公司名之后的部分
+          const companyIndex = positionText.indexOf(result.company);
+          positionText = positionText.substring(companyIndex + result.company.length);
+        }
+        
+        // 常见的职位分隔符
+        const separators = ['-', '—', '·', '|', '丨', '：', ':', '招聘', '校招', '实习'];
+        for (const sep of separators) {
+          const idx = positionText.indexOf(sep);
+          if (idx !== -1 && idx < 30) {
+            positionText = positionText.substring(idx + 1);
+            break;
+          }
+        }
+
+        // 清理职位文本：去掉括号内容、多余标点
+        positionText = positionText.replace(/[（(][^)）]*[)）]/g, ' ').trim();
+        positionText = positionText.replace(/[【\[]+[^\]】]*[\]】]+/g, ' ').trim();
+        positionText = positionText.replace(/[#\*]/g, '').trim();
+        
+        // 取前几个有意义的词作为职位
+        const words = positionText.split(/[\s,，、]+/).filter(w => w.length > 0);
+        if (words.length > 0) {
+          // 组合连续的词，直到看起来像一个完整的职位名
+          let pos = '';
+          for (const word of words) {
+            if (pos.length < 30 && !CITIES.includes(word) && 
+                !['全职', '应届', '校招', '实习', '社招'].includes(word)) {
+              pos += (pos ? ' ' : '') + word;
+            }
+            if (pos.length > 5 && (
+              word.includes('工程师') || word.includes('经理') || word.includes('专员') ||
+              word.includes('师') || word.includes('员') || word.includes('生') ||
+              word.includes('Engineer') || word.includes('Manager')
+            )) break;
+          }
+          result.position = pos || words[0];
+        }
+
+        // 如果职位还是太长，截取合理长度
+        if (result.position && result.position.length > 40) {
+          result.position = result.position.substring(0, 40);
+        }
+
+        // 4. 自动推断岗位类别
+        if (result.position) {
+          const posLower = result.position.toLowerCase();
+          for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+            for (const kw of keywords) {
+              if (posLower.includes(kw.toLowerCase())) {
+                result.category = category;
+                break;
+              }
+            }
+            if (result.category) break;
+          }
+        }
+
+        // 如果公司名不够正式，尝试从文本开头提取
+        if (!result.company) {
+          const firstLine = cleanText.split(/[\n\r]+/)[0];
+          const firstWords = firstLine.split(/[\s\-—·|丨：:]+/)[0];
+          if (firstWords.length >= 2 && firstWords.length <= 15 && 
+              !/[\d%$￥]/.test(firstWords) &&
+              !['招聘', '校招', '实习', '岗位', '职位'].includes(firstWords)) {
+            result.company = firstWords.trim();
+          }
+        }
+
+        return result;
+      }
+
+      function doSmartParse() {
+        const input = document.getElementById('parseInput').value.trim();
+        const resultDiv = document.getElementById('parseResult');
+        
+        if (!input) {
+          resultDiv.className = 'parse-result show';
+          resultDiv.style.color = '#991b1b';
+          resultDiv.style.background = '#fee2e2';
+          resultDiv.textContent = '⚠️ 请先粘贴招聘信息文本';
+          return;
+        }
+
+        const parsed = parseText(input);
+        
+        if (!parsed || (!parsed.company && !parsed.position)) {
+          resultDiv.className = 'parse-result show';
+          resultDiv.style.color = '#991b1b';
+          resultDiv.style.background = '#fee2e2';
+          resultDiv.textContent = '❌ 未能识别出有效信息，请尝试手动填写或调整文本格式';
+          return;
+        }
+
+        // 填充到表单
+        if (parsed.company) document.getElementById('company').value = parsed.company;
+        if (parsed.position) document.getElementById('position').value = parsed.position;
+        if (parsed.location) document.getElementById('location').value = parsed.location;
+        if (parsed.category) document.getElementById('category').value = parsed.category;
+
+        // 显示识别结果
+        const parts = [];
+        if (parsed.company) parts.push(`🏢 公司：${parsed.company}`);
+        if (parsed.position) parts.push(`💼 职位：${parsed.position}`);
+        if (parsed.location) parts.push(`📍 地点：${parsed.location}`);
+        if (parsed.category) parts.push(`📂 类别：${parsed.category}`);
+        
+        resultDiv.className = 'parse-result show';
+        resultDiv.style.color = '#065f46';
+        resultDiv.style.background = '#d1fae5';
+        resultDiv.innerHTML = '✅ 识别成功！已自动填入表单<br>' + parts.join('<br>');
+        
+        // 自动切换到手动填写 tab 让用户确认
+        switchTab('manual');
+      }
+
+      // ============ Tab 切换 ============
+      function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.toggle('active', content.id === 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+        });
+      }
+
+      // ============ 数据管理 ============
       function loadData() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -490,17 +808,25 @@
         document.getElementById('recordId').value = '';
         document.getElementById('applyDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('category').value = '';
+        document.getElementById('parseInput').value = '';
+        document.getElementById('parseResult').className = 'parse-result';
+        currentEditId = null;
       }
 
       function openAddModal() {
         resetForm();
         document.getElementById('modalTitle').textContent = '添加申请';
+        switchTab('manual');
         document.getElementById('formModal').classList.add('active');
+        // 隐藏智能解析 tab（只在添加时显示）
+        document.getElementById('tabButtons').style.display = 'flex';
+        document.getElementById('tabSmart').style.display = '';
       }
 
       function openEditModal(id) {
         const app = applications.find(a => a.id === id);
         if (!app) return;
+        currentEditId = id;
         document.getElementById('recordId').value = app.id;
         document.getElementById('company').value = app.company;
         document.getElementById('position').value = app.position;
@@ -509,7 +835,13 @@
         document.getElementById('applyDate').value = app.date || '';
         document.getElementById('status').value = app.status || '待投递';
         document.getElementById('note').value = app.note || '';
+        document.getElementById('parseInput').value = '';
+        document.getElementById('parseResult').className = 'parse-result';
         document.getElementById('modalTitle').textContent = '编辑申请';
+        // 编辑模式下隐藏智能解析
+        document.getElementById('tabButtons').style.display = 'none';
+        document.getElementById('tabSmart').style.display = 'none';
+        switchTab('manual');
         document.getElementById('formModal').classList.add('active');
       }
 
@@ -518,7 +850,7 @@
       }
 
       function saveRecord(e) {
-        e.preventDefault();
+        if (e) e.preventDefault();
         const id = document.getElementById('recordId').value;
         const company = document.getElementById('company').value.trim();
         const position = document.getElementById('position').value.trim();
@@ -579,74 +911,3 @@
         reader.onload = (e) => {
           try {
             const imported = JSON.parse(e.target.result);
-            if (!Array.isArray(imported)) throw new Error('格式错误');
-            if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-            applications = imported.map(item => ({
-              ...item,
-              category: item.category || ''
-            }));
-            saveData();
-            renderTable();
-            alert('导入成功！');
-          } catch (error) {
-            alert('文件格式不正确，请选择之前导出的 JSON 备份文件。');
-          }
-        };
-        reader.readAsText(file);
-      }
-
-      function resetFilters() {
-        document.getElementById('filterCompany').value = '';
-        document.getElementById('filterCategory').value = '';
-        document.getElementById('filterStatus').value = '';
-        renderTable();
-      }
-
-      function bindFilterEvents() {
-        document.getElementById('filterCompany').addEventListener('input', renderTable);
-        document.getElementById('filterCategory').addEventListener('change', renderTable);
-        document.getElementById('filterStatus').addEventListener('change', renderTable);
-        document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
-      }
-
-      function bindEvents() {
-        document.getElementById('addBtn').addEventListener('click', openAddModal);
-        document.getElementById('cancelBtn').addEventListener('click', closeModal);
-        document.getElementById('formModal').addEventListener('click', (e) => {
-          if (e.target === document.getElementById('formModal')) closeModal();
-        });
-        document.getElementById('appForm').addEventListener('submit', saveRecord);
-        document.getElementById('exportBtn').addEventListener('click', exportData);
-        document.getElementById('importBtn').addEventListener('click', () => {
-          document.getElementById('importFile').click();
-        });
-        document.getElementById('importFile').addEventListener('change', (e) => {
-          if (e.target.files.length > 0) {
-            importData(e.target.files[0]);
-            e.target.value = '';
-          }
-        });
-
-        document.getElementById('tableBody').addEventListener('click', (e) => {
-          const btn = e.target.closest('button');
-          if (!btn) return;
-          const id = btn.dataset.id;
-          if (btn.classList.contains('edit')) {
-            openEditModal(id);
-          } else if (btn.classList.contains('delete')) {
-            deleteRecord(id);
-          }
-        });
-
-        bindFilterEvents();
-      }
-
-      // 初始化
-      loadData();
-      renderTable();
-      bindEvents();
-      document.getElementById('applyDate').value = new Date().toISOString().split('T')[0];
-    })();
-  </script>
-</body>
-</html>
