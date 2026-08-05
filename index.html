@@ -4,144 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>我的秋招记录</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
+      background: #f5f7fa; color: #333; padding: 20px; max-width: 1200px; margin: 0 auto;
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-weight: 600;
-      color: #1e3c72;
-    }
+    h1 { text-align: center; margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
     .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 16px;
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-bottom: 16px;
     }
     button, .btn {
-      background: white;
-      border: 1px solid #d0d5dd;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
+      background: white; border: 1px solid #d0d5dd; padding: 10px 18px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
     }
-    button:hover, .btn:hover {
-      background: #f0f2f5;
-      border-color: #b0b7c3;
-    }
-    .btn-primary {
-      background: #1e3c72;
-      border-color: #1e3c72;
-      color: white;
-    }
-    .btn-primary:hover {
-      background: #16325c;
-    }
+    button:hover, .btn:hover { background: #f0f2f5; border-color: #b0b7c3; }
+    .btn-primary { background: #1e3c72; border-color: #1e3c72; color: white; }
+    .btn-primary:hover { background: #16325c; }
     .filter-section {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 16px;
-      background: white;
-      padding: 14px 18px;
-      border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;
+      margin-bottom: 16px; background: white; padding: 14px 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-    .filter-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-    }
-    .filter-item label {
-      font-weight: 500;
-      color: #374151;
-      white-space: nowrap;
-    }
+    .filter-item { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+    .filter-item label { font-weight: 500; color: #374151; white-space: nowrap; }
     .filter-item input, .filter-item select {
-      padding: 8px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 14px;
-      background: white;
-      min-width: 150px;
+      padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: white; min-width: 150px;
     }
-    .filter-item input:focus, .filter-item select:focus {
-      outline: none;
-      border-color: #1e3c72;
-      box-shadow: 0 0 0 3px rgba(30,60,114,0.15);
-    }
-    .reset-btn {
-      background: #fee2e2;
-      border-color: #fecaca;
-      color: #991b1b;
-    }
-    .reset-btn:hover {
-      background: #fecaca;
-    }
+    .filter-item input:focus, .filter-item select:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
+    .reset-btn { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+    .reset-btn:hover { background: #fecaca; }
     .table-wrapper {
-      overflow-x: auto;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      padding: 10px;
+      overflow-x: auto; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 10px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 950px;
-      white-space: nowrap;
-    }
+    table { width: 100%; border-collapse: collapse; min-width: 950px; white-space: nowrap; }
     th {
-      text-align: left;
-      padding: 14px 12px;
-      font-weight: 600;
-      font-size: 13px;
-      color: #5f6b7a;
-      background: #f9fafb;
-      border-bottom: 1px solid #e9ebf0;
+      text-align: left; padding: 14px 12px; font-weight: 600; font-size: 13px; color: #5f6b7a;
+      background: #f9fafb; border-bottom: 1px solid #e9ebf0;
     }
-    td {
-      padding: 12px 12px;
-      border-bottom: 1px solid #f0f2f5;
-      font-size: 14px;
-      vertical-align: middle;
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
+    td { padding: 12px 12px; border-bottom: 1px solid #f0f2f5; font-size: 14px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
     .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 500;
-      background: #eef2ff;
-      color: #4338ca;
+      display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 500;
+      background: #eef2ff; color: #4338ca;
     }
     .status-待投递 { background: #f3f4f6; color: #6b7280; }
     .status-已投递 { background: #e0f2fe; color: #0369a1; }
@@ -153,112 +59,62 @@
     .status-拒信 { background: #fee2e2; color: #991b1b; }
     .status-已签约 { background: #bae6fd; color: #0c4a6e; font-weight: 600; }
     .action-btn {
-      background: none;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      color: #4b5563;
-      margin-right: 4px;
+      background: none; border: none; padding: 4px 10px; border-radius: 6px; font-size: 13px;
+      cursor: pointer; color: #4b5563; margin-right: 4px;
     }
-    .action-btn:hover {
-      background: #f3f4f6;
-    }
-    .action-btn.delete {
-      color: #b91c1c;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #9ca3af;
-      font-size: 15px;
-    }
+    .action-btn:hover { background: #f3f4f6; }
+    .action-btn.delete { color: #b91c1c; }
+    .empty-state { text-align: center; padding: 40px; color: #9ca3af; font-size: 15px; }
     .category-badge {
+      display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 12px;
+      background: #f3f4f6; color: #4b5563; font-weight: 500;
+    }
+    /* 备注单元格展开/折叠样式 */
+    .remark-td .remark-cell {
       display: inline-block;
-      padding: 2px 10px;
-      border-radius: 50px;
-      font-size: 12px;
-      background: #f3f4f6;
-      color: #4b5563;
-      font-weight: 500;
+      max-width: 160px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: all 0.2s;
     }
-    /* 模态框 */
+    .remark-td.expanded .remark-cell {
+      white-space: normal;
+      overflow: visible;
+      max-width: none;
+    }
     .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000;
     }
-    .modal.active {
-      display: flex;
-    }
+    .modal.active { display: flex; }
     .modal-content {
-      background: white;
-      border-radius: 20px;
-      padding: 25px;
-      width: 90%;
-      max-width: 520px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-      max-height: 90vh;
-      overflow-y: auto;
+      background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 520px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;
     }
-    .modal-content h2 {
-      margin-bottom: 20px;
-      font-weight: 600;
-      color: #1e3c72;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 5px;
-      color: #374151;
-    }
+    .modal-content h2 { margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; color: #374151; }
     input, select, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: border 0.2s;
+      width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px;
+      font-size: 14px; font-family: inherit; transition: border 0.2s;
     }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #1e3c72;
-      box-shadow: 0 0 0 3px rgba(30,60,114,0.15);
-    }
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .text-muted {
-      color: #6b7280;
-      font-size: 13px;
-      margin-top: 5px;
-    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .text-muted { color: #6b7280; font-size: 13px; margin-top: 5px; }
   </style>
 </head>
 <body>
   <h1>🍂 我的秋招记录</h1>
   
-  <!-- 操作按钮 -->
   <div class="toolbar">
     <button class="btn-primary" id="addBtn">＋ 添加申请</button>
     <button id="exportBtn">⬇ 导出 Excel</button>
     <button id="importBtn">⬆ 导入数据</button>
   </div>
 
-  <!-- 筛选区域 -->
   <div class="filter-section">
     <div class="filter-item">
       <label>🔍 公司</label>
@@ -301,7 +157,6 @@
     <button class="reset-btn" id="resetFilterBtn">🔄 重置筛选</button>
   </div>
 
-  <!-- 表格 -->
   <div class="table-wrapper">
     <table id="appTable">
       <thead>
@@ -386,37 +241,22 @@
     </div>
   </div>
 
-  <input type="file" id="importFile" accept=".json" style="display: none;">
+  <input type="file" id="importFile" accept=".json,.csv,.xlsx,.xls" style="display: none;">
 
   <script>
     (function() {
       const STORAGE_KEY = 'qiuzhao_applications_v2';
-      
       let applications = [];
 
       function loadData() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-          try {
-            applications = JSON.parse(stored);
-          } catch (e) {
-            applications = [];
-          }
+          try { applications = JSON.parse(stored); } catch (e) { applications = []; }
         } else {
           const oldData = localStorage.getItem('qiuzhao_applications');
           if (oldData) {
-            try {
-              applications = JSON.parse(oldData).map(item => ({
-                ...item,
-                category: item.category || ''
-              }));
-              saveData();
-            } catch (e) {
-              applications = [];
-            }
-          } else {
-            applications = [];
-          }
+            try { applications = JSON.parse(oldData).map(item => ({...item, category: item.category || ''})); saveData(); } catch (e) { applications = []; }
+          } else { applications = []; }
         }
         applications = applications.map(app => ({
           ...app,
@@ -426,13 +266,8 @@
         }));
       }
 
-      function saveData() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-      }
-
-      function generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-      }
+      function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(applications)); }
+      function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
 
       function getFilters() {
         return {
@@ -465,6 +300,7 @@
         filtered.forEach(app => {
           const statusClass = app.status ? `status-${app.status}` : '';
           const categoryText = app.category || '未分类';
+          const remarkText = app.note || '-';
           html += `
             <tr>
               <td><strong>${escapeHtml(app.company)}</strong></td>
@@ -473,7 +309,9 @@
               <td>${escapeHtml(app.location || '-')}</td>
               <td>${escapeHtml(app.date || '-')}</td>
               <td><span class="status-badge ${statusClass}">${escapeHtml(app.status || '待投递')}</span></td>
-              <td style="max-width:160px; white-space: normal; word-break: break-word;">${escapeHtml(app.note || '-')}</td>
+              <td class="remark-td" data-remark-id="${app.id}">
+                <span class="remark-cell" title="${escapeHtml(remarkText)}">${escapeHtml(remarkText)}</span>
+              </td>
               <td>
                 <button class="action-btn edit" data-id="${app.id}">✏️编辑</button>
                 <button class="action-btn delete" data-id="${app.id}">🗑删除</button>
@@ -486,11 +324,7 @@
 
       function escapeHtml(text) {
         return String(text)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;');
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
       }
 
       function resetForm() {
@@ -521,9 +355,7 @@
         document.getElementById('formModal').classList.add('active');
       }
 
-      function closeFormModal() {
-        document.getElementById('formModal').classList.remove('active');
-      }
+      function closeFormModal() { document.getElementById('formModal').classList.remove('active'); }
 
       function saveRecord(e) {
         e.preventDefault();
@@ -536,29 +368,15 @@
         const status = document.getElementById('status').value;
         const note = document.getElementById('note').value.trim();
 
-        if (!company || !position) {
-          alert('公司名称和职位不能为空');
-          return;
-        }
+        if (!company || !position) { alert('公司名称和职位不能为空'); return; }
 
-        const record = {
-          id: id || generateId(),
-          company,
-          position,
-          category,
-          location,
-          date,
-          status,
-          note
-        };
-
+        const record = { id: id || generateId(), company, position, category, location, date, status, note };
         if (id) {
           const index = applications.findIndex(a => a.id === id);
           if (index !== -1) applications[index] = record;
         } else {
           applications.unshift(record);
         }
-
         saveData();
         renderTable();
         closeFormModal();
@@ -571,18 +389,11 @@
         renderTable();
       }
 
-      // 格式化地点：将常见分隔符统一为中文顿号
       function formatLocationForExport(loc) {
         if (!loc) return '';
-        // 将 / , ; | 空格（连续）都替换为顿号，并清理多余顿号
-        return loc
-          .replace(/[\/,;|]+/g, '、')
-          .replace(/\s+/g, '、')
-          .replace(/、+/g, '、')
-          .replace(/^、|、$/g, '');
+        return loc.replace(/[\/,;|]+/g, '、').replace(/\s+/g, '、').replace(/、+/g, '、').replace(/^、|、$/g, '');
       }
 
-      // CSV 转义
       function csvEscape(str) {
         if (str.includes(',') || str.includes('"') || str.includes('\n')) {
           return '"' + str.replace(/"/g, '""') + '"';
@@ -593,22 +404,12 @@
       function exportToCSV() {
         const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '备注'];
         const rows = applications.map(app => [
-          app.company || '',
-          app.position || '',
-          app.category || '',
-          formatLocationForExport(app.location || ''),
-          app.date || '',
-          app.status || '',
-          app.note || ''
+          app.company || '', app.position || '', app.category || '',
+          formatLocationForExport(app.location || ''), app.date || '', app.status || '', app.note || ''
         ]);
-
-        // 添加 BOM 防止 Excel 乱码
         let csvContent = '\uFEFF';
         csvContent += headers.map(csvEscape).join(',') + '\n';
-        rows.forEach(row => {
-          csvContent += row.map(csvEscape).join(',') + '\n';
-        });
-
+        rows.forEach(row => { csvContent += row.map(csvEscape).join(',') + '\n'; });
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -618,26 +419,93 @@
         URL.revokeObjectURL(url);
       }
 
-      function importData(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const imported = JSON.parse(e.target.result);
-            if (!Array.isArray(imported)) throw new Error('格式错误');
-            if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-            applications = imported.map(item => ({
-              ...item,
-              category: item.category || '',
-              location: item.location || ''
-            }));
-            saveData();
-            renderTable();
-            alert('导入成功！');
-          } catch (error) {
-            alert('文件格式不正确，请选择之前导出的 JSON 备份文件。');
+      function parseCSV(text) {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = [];
+          let current = '', inQuotes = false;
+          for (const ch of lines[i]) {
+            if (ch === '"') { inQuotes = !inQuotes; continue; }
+            if (ch === ',' && !inQuotes) { values.push(current.trim()); current = ''; continue; }
+            current += ch;
           }
-        };
-        reader.readAsText(file);
+          values.push(current.trim());
+          const obj = {};
+          const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '备注':'note' };
+          headers.forEach((header, idx) => {
+            let val = values[idx] ? values[idx].replace(/^"|"$/g, '') : '';
+            const key = map[header] || header;
+            obj[key] = val;
+          });
+          if (obj.company || obj.position) data.push(obj);
+        }
+        return data;
+      }
+
+      function handleImportFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const reader = new FileReader();
+        if (ext === 'json') {
+          reader.onload = (e) => {
+            try {
+              const imported = JSON.parse(e.target.result);
+              if (!Array.isArray(imported)) throw new Error('格式错误');
+              if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
+              applications = imported.map(item => ({...item, category: item.category || '', location: item.location || ''}));
+              saveData(); renderTable(); alert('导入成功！');
+            } catch (error) { alert('JSON 文件格式不正确'); }
+          };
+          reader.readAsText(file);
+        } else if (ext === 'csv') {
+          reader.onload = (e) => {
+            const data = parseCSV(e.target.result);
+            if (data.length === 0) { alert('CSV 文件为空或格式不正确'); return; }
+            if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
+            applications = data.map(item => ({
+              id: generateId(), company: item.company || '', position: item.position || '',
+              category: item.category || '', location: item.location || '', date: item.date || '',
+              status: item.status || '待投递', note: item.note || ''
+            }));
+            saveData(); renderTable(); alert('导入成功！');
+          };
+          reader.readAsText(file);
+        } else if (ext === 'xlsx' || ext === 'xls') {
+          reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheet];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            if (jsonData.length < 2) { alert('Excel 文件无数据'); return; }
+            const headers = jsonData[0].map(h => String(h).trim());
+            const records = [];
+            const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '备注':'note' };
+            for (let i = 1; i < jsonData.length; i++) {
+              const row = jsonData[i];
+              const obj = {};
+              headers.forEach((header, idx) => {
+                const val = row[idx] !== undefined ? String(row[idx]).trim() : '';
+                const key = map[header] || header;
+                obj[key] = val;
+              });
+              if (obj.company || obj.position) records.push(obj);
+            }
+            if (records.length === 0) { alert('未从 Excel 中识别到有效记录'); return; }
+            if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
+            applications = records.map(item => ({
+              id: generateId(), company: item.company || '', position: item.position || '',
+              category: item.category || '', location: item.location || '', date: item.date || '',
+              status: item.status || '待投递', note: item.note || ''
+            }));
+            saveData(); renderTable(); alert('导入成功！');
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          alert('不支持的文件格式，请选择 JSON / CSV / Excel 文件');
+        }
       }
 
       function resetFilters() {
@@ -664,31 +532,33 @@
         });
         document.getElementById('appForm').addEventListener('submit', saveRecord);
         document.getElementById('exportBtn').addEventListener('click', exportToCSV);
-        document.getElementById('importBtn').addEventListener('click', () => {
-          document.getElementById('importFile').click();
-        });
+        document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
         document.getElementById('importFile').addEventListener('change', (e) => {
           if (e.target.files.length > 0) {
-            importData(e.target.files[0]);
+            handleImportFile(e.target.files[0]);
             e.target.value = '';
           }
         });
 
+        // 表格点击事件委托（备注展开折叠、编辑、删除）
         document.getElementById('tableBody').addEventListener('click', (e) => {
+          // 优先处理备注单元格的点击
+          const remarkTd = e.target.closest('.remark-td');
+          if (remarkTd) {
+            remarkTd.classList.toggle('expanded');
+            return; // 阻止触发其他按钮事件
+          }
+          // 处理编辑/删除按钮
           const btn = e.target.closest('button');
           if (!btn) return;
           const id = btn.dataset.id;
-          if (btn.classList.contains('edit')) {
-            openEditModal(id);
-          } else if (btn.classList.contains('delete')) {
-            deleteRecord(id);
-          }
+          if (btn.classList.contains('edit')) openEditModal(id);
+          else if (btn.classList.contains('delete')) deleteRecord(id);
         });
 
         bindFilterEvents();
       }
 
-      // 初始化
       loadData();
       renderTable();
       bindEvents();
