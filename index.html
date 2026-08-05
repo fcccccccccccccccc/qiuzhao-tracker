@@ -356,6 +356,7 @@
         <div class="form-group">
           <label>投递日期</label>
           <input type="date" id="applyDate">
+          <p class="text-muted">如状态为“待投递”，可留空。</p>
         </div>
         <div class="form-group">
           <label>当前进度</label>
@@ -495,7 +496,8 @@
       function resetForm() {
         document.getElementById('appForm').reset();
         document.getElementById('recordId').value = '';
-        document.getElementById('applyDate').value = new Date().toISOString().split('T')[0];
+        // 日期默认留空，不再自动设为今天
+        document.getElementById('applyDate').value = '';
         document.getElementById('category').value = '';
       }
 
@@ -546,7 +548,7 @@
           position,
           category,
           location,
-          date,
+          date, // 可以为空字符串
           status,
           note
         };
@@ -655,7 +657,7 @@
       loadData();
       renderTable();
       bindEvents();
-      document.getElementById('applyDate').value = new Date().toISOString().split('T')[0];
+      // 注意：不再自动设置 applyDate 默认值
     })();
   </script>
 </body>
