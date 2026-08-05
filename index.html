@@ -121,7 +121,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 900px;
+      min-width: 950px;
       white-space: nowrap;
     }
     th {
@@ -279,6 +279,10 @@
       <input type="text" id="filterCompany" placeholder="输入公司名筛选...">
     </div>
     <div class="filter-item">
+      <label>📍 地点</label>
+      <input type="text" id="filterLocation" placeholder="输入城市筛选...">
+    </div>
+    <div class="filter-item">
       <label>📂 岗位类别</label>
       <select id="filterCategory">
         <option value="">全部</option>
@@ -361,7 +365,7 @@
         </div>
         <div class="form-group">
           <label>工作地点</label>
-          <input type="text" id="location" placeholder="例如：北京">
+          <input type="text" id="location" placeholder="例如：北京（多个可用 / 分隔）">
         </div>
         <div class="form-group">
           <label>投递日期</label>
@@ -399,11 +403,11 @@
   <div class="modal" id="smartModal">
     <div class="modal-content">
       <h2>📋 智能粘贴</h2>
-      <p style="font-size:14px; color:#4b5563; margin-bottom:12px;">粘贴招聘信息文本，自动识别公司名和职位。</p>
+      <p style="font-size:14px; color:#4b5563; margin-bottom:12px;">粘贴招聘信息文本，自动识别公司名、职位和工作地点。</p>
       <div class="form-group">
-        <textarea id="smartText" rows="5" placeholder="例如：&#10;【字节跳动】校招-后端开发工程师&#10;或者：腾讯 产品经理 2026秋招&#10;或者直接粘贴一段招聘JD..."></textarea>
+        <textarea id="smartText" rows="5" placeholder="例如：&#10;【字节跳动】校招-后端开发工程师&#10;工作地点：北京 / 上海&#10;或者直接粘贴一段招聘JD..."></textarea>
       </div>
-      <p class="smart-hint">支持识别【公司名】、公司：XXX、职位：XXX 等常见格式，或按空格/-分隔的第一段文字。</p>
+      <p class="smart-hint">支持识别【公司名】、公司：XXX、职位：XXX、地点：XXX 等常见格式。</p>
       <div class="form-actions">
         <button type="button" id="smartCancelBtn">取消</button>
         <button type="button" class="btn-primary" id="smartParseBtn">解析并填充</button>
@@ -446,7 +450,8 @@
         applications = applications.map(app => ({
           ...app,
           category: app.category || '',
-          status: app.status || '待投递'
+          status: app.status || '待投递',
+          location: app.location || ''
         }));
       }
 
@@ -461,15 +466,18 @@
       function getFilters() {
         return {
           company: document.getElementById('filterCompany').value.trim().toLowerCase(),
+          location: document.getElementById('filterLocation').value.trim().toLowerCase(),
           category: document.getElementById('filterCategory').value,
           status: document.getElementById('filterStatus').value
         };
       }
 
       function getFilteredApplications() {
-        const { company, category, status } = getFilters();
+        const { company, location, category, status } = getFilters();
         return applications.filter(app => {
           if (company && !app.company.toLowerCase().includes(company)) return false;
+          // 地点模糊匹配：只要记录的地点字段包含关键词即保留
+          if (location && !(app.location || '').toLowerCase().includes(location)) return false;
           if (category && app.category !== category) return false;
           if (status && app.status !== status) return false;
           return true;
@@ -613,7 +621,8 @@
             if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
             applications = imported.map(item => ({
               ...item,
-              category: item.category || ''
+              category: item.category || '',
+              location: item.location || ''
             }));
             saveData();
             renderTable();
@@ -627,41 +636,43 @@
 
       function resetFilters() {
         document.getElementById('filterCompany').value = '';
+        document.getElementById('filterLocation').value = '';
         document.getElementById('filterCategory').value = '';
         document.getElementById('filterStatus').value = '';
         renderTable();
       }
 
-      // 智能解析函数
+      // 智能解析函数（增加地点识别）
       function parseJobText(text) {
-        if (!text.trim()) return { company: '', position: '' };
-        let company = '', position = '';
+        if (!text.trim()) return { company: '', position: '', location: '' };
+        let company = '', position = '', location = '';
 
-        // 1. 尝试匹配【公司名】
+        // 1. 匹配【公司名】
         const bracketMatch = text.match(/【(.+?)】/);
-        if (bracketMatch) {
-          company = bracketMatch[1].trim();
-        }
+        if (bracketMatch) company = bracketMatch[1].trim();
 
-        // 2. 匹配 公司：XXX 或 公司名称：XXX
+        // 2. 匹配 公司：XXX
         if (!company) {
           const companyRegex = /(?:公司名称|公司|企业)\s*[：:]\s*(.+?)(?:[\s,，;；]|$)/i;
           const cm = text.match(companyRegex);
           if (cm) company = cm[1].trim();
         }
 
-        // 3. 匹配 职位：XXX 或 岗位：XXX
+        // 3. 匹配 职位：XXX
         const posRegex = /(?:岗位名称|岗位|职位|招聘职位)\s*[：:]\s*(.+?)(?:[\s,，;；]|$)/i;
         const pm = text.match(posRegex);
         if (pm) position = pm[1].trim();
 
-        // 4. 如果还没有提取到，取第一行用分隔符拆分
+        // 4. 匹配 地点：XXX（新增）
+        const locRegex = /(?:工作地点|地点|城市|工作城市|base)\s*[：:]\s*(.+?)(?:[\s,，;；]|$)/i;
+        const lm = text.match(locRegex);
+        if (lm) location = lm[1].trim();
+
+        // 5. 如果还没提取全，用第一行拆分
         if (!company || !position) {
           const firstLine = text.split('\n')[0].trim();
-          // 移除常见的干扰词
           let cleanLine = firstLine.replace(/校招|实习生|应届|补录/g, '').trim();
-          // 按多种分隔符分割
-          const parts = cleanLine.split(/[\s\-|·]+/).filter(p => p.trim() && p.trim().length > 0);
+          const parts = cleanLine.split(/[\s\-|·]+/).filter(p => p.trim().length > 0);
           if (parts.length >= 2) {
             if (!company) company = parts[0];
             if (!position) position = parts.slice(1).join(' ');
@@ -670,10 +681,7 @@
           }
         }
 
-        return {
-          company: company || '',
-          position: position || ''
-        };
+        return { company: company || '', position: position || '', location: location || '' };
       }
 
       // 智能粘贴功能
@@ -688,21 +696,23 @@
 
       function handleSmartParse() {
         const text = document.getElementById('smartText').value;
-        const { company, position } = parseJobText(text);
+        const { company, position, location } = parseJobText(text);
         if (!company && !position) {
           alert('未能识别出公司和职位，请手动输入或调整粘贴内容。');
           return;
         }
-        // 关闭智能窗口，打开添加窗口并预填
         closeSmartModal();
         openAddModal();
         document.getElementById('company').value = company;
         document.getElementById('position').value = position;
-        // 可选：尝试从文本中提取地点或类别（不做复杂处理）
+        if (location) {
+          document.getElementById('location').value = location;
+        }
       }
 
       function bindFilterEvents() {
         document.getElementById('filterCompany').addEventListener('input', renderTable);
+        document.getElementById('filterLocation').addEventListener('input', renderTable);
         document.getElementById('filterCategory').addEventListener('change', renderTable);
         document.getElementById('filterStatus').addEventListener('change', renderTable);
         document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
@@ -726,7 +736,6 @@
           }
         });
 
-        // 智能粘贴
         document.getElementById('smartPasteBtn').addEventListener('click', openSmartModal);
         document.getElementById('smartCancelBtn').addEventListener('click', closeSmartModal);
         document.getElementById('smartModal').addEventListener('click', (e) => {
