@@ -143,6 +143,7 @@
       background: #eef2ff;
       color: #4338ca;
     }
+    .status-待投递 { background: #f3f4f6; color: #6b7280; }
     .status-已投递 { background: #e0f2fe; color: #0369a1; }
     .status-测评 { background: #fef3c7; color: #b45309; }
     .status-笔试 { background: #ede9fe; color: #6d28d9; }
@@ -280,6 +281,7 @@
       <label>📌 当前进度</label>
       <select id="filterStatus">
         <option value="">全部</option>
+        <option value="待投递">待投递</option>
         <option value="已投递">已投递</option>
         <option value="测评">测评</option>
         <option value="笔试">笔试</option>
@@ -354,6 +356,7 @@
         <div class="form-group">
           <label>当前进度</label>
           <select id="status">
+            <option value="待投递">待投递</option>
             <option value="已投递">已投递</option>
             <option value="测评">测评</option>
             <option value="笔试">笔试</option>
@@ -382,11 +385,10 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'qiuzhao_applications_v2'; // 升级存储键，避免旧数据结构冲突
+      const STORAGE_KEY = 'qiuzhao_applications_v2';
       
       let applications = [];
 
-      // 加载数据，兼容旧字段
       function loadData() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -396,15 +398,14 @@
             applications = [];
           }
         } else {
-          // 尝试从旧版存储迁移
           const oldData = localStorage.getItem('qiuzhao_applications');
           if (oldData) {
             try {
               applications = JSON.parse(oldData).map(item => ({
                 ...item,
-                category: item.category || '' // 旧数据没有category，补默认值
+                category: item.category || ''
               }));
-              saveData(); // 保存到新键
+              saveData();
             } catch (e) {
               applications = [];
             }
@@ -412,10 +413,10 @@
             applications = [];
           }
         }
-        // 确保每条记录都有category字段
         applications = applications.map(app => ({
           ...app,
-          category: app.category || ''
+          category: app.category || '',
+          status: app.status || '待投递'
         }));
       }
 
@@ -427,7 +428,6 @@
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
       }
 
-      // 获取当前筛选条件
       function getFilters() {
         return {
           company: document.getElementById('filterCompany').value.trim().toLowerCase(),
@@ -436,7 +436,6 @@
         };
       }
 
-      // 根据筛选条件过滤数据
       function getFilteredApplications() {
         const { company, category, status } = getFilters();
         return applications.filter(app => {
@@ -447,7 +446,6 @@
         });
       }
 
-      // 渲染表格（使用过滤后的数据）
       function renderTable() {
         const filtered = getFilteredApplications();
         const tbody = document.getElementById('tableBody');
@@ -466,7 +464,7 @@
               <td><span class="category-badge">${escapeHtml(categoryText)}</span></td>
               <td>${escapeHtml(app.location || '-')}</td>
               <td>${escapeHtml(app.date || '-')}</td>
-              <td><span class="status-badge ${statusClass}">${escapeHtml(app.status || '已投递')}</span></td>
+              <td><span class="status-badge ${statusClass}">${escapeHtml(app.status || '待投递')}</span></td>
               <td style="max-width:160px; white-space: normal; word-break: break-word;">${escapeHtml(app.note || '-')}</td>
               <td>
                 <button class="action-btn edit" data-id="${app.id}">✏️编辑</button>
@@ -509,7 +507,7 @@
         document.getElementById('category').value = app.category || '';
         document.getElementById('location').value = app.location || '';
         document.getElementById('applyDate').value = app.date || '';
-        document.getElementById('status').value = app.status || '已投递';
+        document.getElementById('status').value = app.status || '待投递';
         document.getElementById('note').value = app.note || '';
         document.getElementById('modalTitle').textContent = '编辑申请';
         document.getElementById('formModal').classList.add('active');
@@ -583,7 +581,6 @@
             const imported = JSON.parse(e.target.result);
             if (!Array.isArray(imported)) throw new Error('格式错误');
             if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-            // 确保导入数据也有category字段
             applications = imported.map(item => ({
               ...item,
               category: item.category || ''
@@ -605,7 +602,6 @@
         renderTable();
       }
 
-      // 监听筛选条件变化
       function bindFilterEvents() {
         document.getElementById('filterCompany').addEventListener('input', renderTable);
         document.getElementById('filterCategory').addEventListener('change', renderTable);
@@ -631,7 +627,6 @@
           }
         });
 
-        // 表格内操作事件委托
         document.getElementById('tableBody').addEventListener('click', (e) => {
           const btn = e.target.closest('button');
           if (!btn) return;
