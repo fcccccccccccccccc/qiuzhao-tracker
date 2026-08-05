@@ -15,12 +15,12 @@
       background: #f5f7fa;
       color: #333;
       padding: 20px;
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
     }
     h1 {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       font-weight: 600;
       color: #1e3c72;
     }
@@ -29,12 +29,13 @@
       flex-wrap: wrap;
       gap: 10px;
       justify-content: center;
-      margin-bottom: 20px;
+      align-items: center;
+      margin-bottom: 16px;
     }
-    button {
+    button, .btn {
       background: white;
       border: 1px solid #d0d5dd;
-      padding: 10px 20px;
+      padding: 10px 18px;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 500;
@@ -44,8 +45,9 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
-    button:hover {
+    button:hover, .btn:hover {
       background: #f0f2f5;
       border-color: #b0b7c3;
     }
@@ -57,6 +59,50 @@
     .btn-primary:hover {
       background: #16325c;
     }
+    .filter-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+      background: white;
+      padding: 14px 18px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+    .filter-item label {
+      font-weight: 500;
+      color: #374151;
+      white-space: nowrap;
+    }
+    .filter-item input, .filter-item select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      background: white;
+      min-width: 150px;
+    }
+    .filter-item input:focus, .filter-item select:focus {
+      outline: none;
+      border-color: #1e3c72;
+      box-shadow: 0 0 0 3px rgba(30,60,114,0.15);
+    }
+    .reset-btn {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+    .reset-btn:hover {
+      background: #fecaca;
+    }
     .table-wrapper {
       overflow-x: auto;
       background: white;
@@ -67,12 +113,12 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 750px;
+      min-width: 900px;
       white-space: nowrap;
     }
     th {
       text-align: left;
-      padding: 14px 16px;
+      padding: 14px 12px;
       font-weight: 600;
       font-size: 13px;
       color: #5f6b7a;
@@ -80,7 +126,7 @@
       border-bottom: 1px solid #e9ebf0;
     }
     td {
-      padding: 14px 16px;
+      padding: 12px 12px;
       border-bottom: 1px solid #f0f2f5;
       font-size: 14px;
       vertical-align: middle;
@@ -127,6 +173,15 @@
       color: #9ca3af;
       font-size: 15px;
     }
+    .category-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 50px;
+      font-size: 12px;
+      background: #f3f4f6;
+      color: #4b5563;
+      font-weight: 500;
+    }
     /* 模态框 */
     .modal {
       display: none;
@@ -145,7 +200,7 @@
       border-radius: 20px;
       padding: 25px;
       width: 90%;
-      max-width: 500px;
+      max-width: 520px;
       box-shadow: 0 25px 50px rgba(0,0,0,0.15);
       max-height: 90vh;
       overflow-y: auto;
@@ -194,18 +249,60 @@
 </head>
 <body>
   <h1>🍂 我的秋招记录</h1>
+  
+  <!-- 操作按钮 -->
   <div class="toolbar">
     <button class="btn-primary" id="addBtn">＋ 添加申请</button>
     <button id="exportBtn">⬇ 导出备份</button>
     <button id="importBtn">⬆ 导入数据</button>
   </div>
 
+  <!-- 筛选区域 -->
+  <div class="filter-section">
+    <div class="filter-item">
+      <label>🔍 公司</label>
+      <input type="text" id="filterCompany" placeholder="输入公司名筛选...">
+    </div>
+    <div class="filter-item">
+      <label>📂 岗位类别</label>
+      <select id="filterCategory">
+        <option value="">全部</option>
+        <option value="技术">技术</option>
+        <option value="产品">产品</option>
+        <option value="设计">设计</option>
+        <option value="运营">运营</option>
+        <option value="市场">市场</option>
+        <option value="职能">职能</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>📌 当前进度</label>
+      <select id="filterStatus">
+        <option value="">全部</option>
+        <option value="已投递">已投递</option>
+        <option value="测评">测评</option>
+        <option value="笔试">笔试</option>
+        <option value="一面">一面</option>
+        <option value="二面">二面</option>
+        <option value="HR面">HR面</option>
+        <option value="终面">终面</option>
+        <option value="Offer">Offer</option>
+        <option value="拒信">拒信</option>
+        <option value="已签约">已签约</option>
+      </select>
+    </div>
+    <button class="reset-btn" id="resetFilterBtn">🔄 重置筛选</button>
+  </div>
+
+  <!-- 表格 -->
   <div class="table-wrapper">
     <table id="appTable">
       <thead>
         <tr>
           <th>公司</th>
           <th>职位</th>
+          <th>岗位类别</th>
           <th>地点</th>
           <th>投递日期</th>
           <th>当前进度</th>
@@ -214,7 +311,7 @@
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="7" class="empty-state">还没有记录，点击上方按钮添加第一条秋招信息吧</td></tr>
+        <tr><td colspan="8" class="empty-state">还没有记录，点击上方按钮添加第一条秋招信息吧</td></tr>
       </tbody>
     </table>
   </div>
@@ -232,6 +329,19 @@
         <div class="form-group">
           <label>职位 *</label>
           <input type="text" id="position" required placeholder="例如：后端开发工程师">
+        </div>
+        <div class="form-group">
+          <label>岗位类别</label>
+          <select id="category">
+            <option value="">请选择</option>
+            <option value="技术">技术</option>
+            <option value="产品">产品</option>
+            <option value="设计">设计</option>
+            <option value="运营">运营</option>
+            <option value="市场">市场</option>
+            <option value="职能">职能</option>
+            <option value="其他">其他</option>
+          </select>
         </div>
         <div class="form-group">
           <label>工作地点</label>
@@ -272,12 +382,11 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'qiuzhao_applications';
+      const STORAGE_KEY = 'qiuzhao_applications_v2'; // 升级存储键，避免旧数据结构冲突
       
-      // 数据模型
       let applications = [];
 
-      // 加载本地数据
+      // 加载数据，兼容旧字段
       function loadData() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -287,38 +396,78 @@
             applications = [];
           }
         } else {
-          applications = [];
+          // 尝试从旧版存储迁移
+          const oldData = localStorage.getItem('qiuzhao_applications');
+          if (oldData) {
+            try {
+              applications = JSON.parse(oldData).map(item => ({
+                ...item,
+                category: item.category || '' // 旧数据没有category，补默认值
+              }));
+              saveData(); // 保存到新键
+            } catch (e) {
+              applications = [];
+            }
+          } else {
+            applications = [];
+          }
         }
+        // 确保每条记录都有category字段
+        applications = applications.map(app => ({
+          ...app,
+          category: app.category || ''
+        }));
       }
 
-      // 保存数据
       function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
       }
 
-      // 生成简单ID
       function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
       }
 
-      // 渲染表格
+      // 获取当前筛选条件
+      function getFilters() {
+        return {
+          company: document.getElementById('filterCompany').value.trim().toLowerCase(),
+          category: document.getElementById('filterCategory').value,
+          status: document.getElementById('filterStatus').value
+        };
+      }
+
+      // 根据筛选条件过滤数据
+      function getFilteredApplications() {
+        const { company, category, status } = getFilters();
+        return applications.filter(app => {
+          if (company && !app.company.toLowerCase().includes(company)) return false;
+          if (category && app.category !== category) return false;
+          if (status && app.status !== status) return false;
+          return true;
+        });
+      }
+
+      // 渲染表格（使用过滤后的数据）
       function renderTable() {
+        const filtered = getFilteredApplications();
         const tbody = document.getElementById('tableBody');
-        if (applications.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="empty-state">还没有记录，点击上方按钮添加第一条秋招信息吧</td></tr>`;
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="empty-state">没有匹配的记录</td></tr>`;
           return;
         }
         let html = '';
-        applications.forEach(app => {
+        filtered.forEach(app => {
           const statusClass = app.status ? `status-${app.status}` : '';
+          const categoryText = app.category || '未分类';
           html += `
             <tr>
               <td><strong>${escapeHtml(app.company)}</strong></td>
               <td>${escapeHtml(app.position)}</td>
+              <td><span class="category-badge">${escapeHtml(categoryText)}</span></td>
               <td>${escapeHtml(app.location || '-')}</td>
               <td>${escapeHtml(app.date || '-')}</td>
               <td><span class="status-badge ${statusClass}">${escapeHtml(app.status || '已投递')}</span></td>
-              <td style="max-width:180px; white-space: normal; word-break: break-word;">${escapeHtml(app.note || '-')}</td>
+              <td style="max-width:160px; white-space: normal; word-break: break-word;">${escapeHtml(app.note || '-')}</td>
               <td>
                 <button class="action-btn edit" data-id="${app.id}">✏️编辑</button>
                 <button class="action-btn delete" data-id="${app.id}">🗑删除</button>
@@ -329,7 +478,6 @@
         tbody.innerHTML = html;
       }
 
-      // 简单转义防XSS
       function escapeHtml(text) {
         return String(text)
           .replace(/&/g, '&amp;')
@@ -339,27 +487,26 @@
           .replace(/'/g, '&#039;');
       }
 
-      // 重置表单
       function resetForm() {
         document.getElementById('appForm').reset();
         document.getElementById('recordId').value = '';
         document.getElementById('applyDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('category').value = '';
       }
 
-      // 打开模态框 (添加)
       function openAddModal() {
         resetForm();
         document.getElementById('modalTitle').textContent = '添加申请';
         document.getElementById('formModal').classList.add('active');
       }
 
-      // 打开模态框 (编辑)
       function openEditModal(id) {
         const app = applications.find(a => a.id === id);
         if (!app) return;
         document.getElementById('recordId').value = app.id;
         document.getElementById('company').value = app.company;
         document.getElementById('position').value = app.position;
+        document.getElementById('category').value = app.category || '';
         document.getElementById('location').value = app.location || '';
         document.getElementById('applyDate').value = app.date || '';
         document.getElementById('status').value = app.status || '已投递';
@@ -368,17 +515,16 @@
         document.getElementById('formModal').classList.add('active');
       }
 
-      // 关闭模态框
       function closeModal() {
         document.getElementById('formModal').classList.remove('active');
       }
 
-      // 保存记录（添加或更新）
       function saveRecord(e) {
         e.preventDefault();
         const id = document.getElementById('recordId').value;
         const company = document.getElementById('company').value.trim();
         const position = document.getElementById('position').value.trim();
+        const category = document.getElementById('category').value;
         const location = document.getElementById('location').value.trim();
         const date = document.getElementById('applyDate').value;
         const status = document.getElementById('status').value;
@@ -393,6 +539,7 @@
           id: id || generateId(),
           company,
           position,
+          category,
           location,
           date,
           status,
@@ -400,11 +547,9 @@
         };
 
         if (id) {
-          // 更新
           const index = applications.findIndex(a => a.id === id);
           if (index !== -1) applications[index] = record;
         } else {
-          // 新增
           applications.unshift(record);
         }
 
@@ -413,7 +558,6 @@
         closeModal();
       }
 
-      // 删除记录
       function deleteRecord(id) {
         if (!confirm('确定要删除这条记录吗？')) return;
         applications = applications.filter(a => a.id !== id);
@@ -421,7 +565,6 @@
         renderTable();
       }
 
-      // 导出数据
       function exportData() {
         const dataStr = JSON.stringify(applications, null, 2);
         const blob = new Blob([dataStr], {type: 'application/json'});
@@ -433,7 +576,6 @@
         URL.revokeObjectURL(url);
       }
 
-      // 导入数据
       function importData(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -441,7 +583,11 @@
             const imported = JSON.parse(e.target.result);
             if (!Array.isArray(imported)) throw new Error('格式错误');
             if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-            applications = imported;
+            // 确保导入数据也有category字段
+            applications = imported.map(item => ({
+              ...item,
+              category: item.category || ''
+            }));
             saveData();
             renderTable();
             alert('导入成功！');
@@ -452,7 +598,21 @@
         reader.readAsText(file);
       }
 
-      // 事件绑定
+      function resetFilters() {
+        document.getElementById('filterCompany').value = '';
+        document.getElementById('filterCategory').value = '';
+        document.getElementById('filterStatus').value = '';
+        renderTable();
+      }
+
+      // 监听筛选条件变化
+      function bindFilterEvents() {
+        document.getElementById('filterCompany').addEventListener('input', renderTable);
+        document.getElementById('filterCategory').addEventListener('change', renderTable);
+        document.getElementById('filterStatus').addEventListener('change', renderTable);
+        document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
+      }
+
       function bindEvents() {
         document.getElementById('addBtn').addEventListener('click', openAddModal);
         document.getElementById('cancelBtn').addEventListener('click', closeModal);
@@ -470,6 +630,7 @@
             e.target.value = '';
           }
         });
+
         // 表格内操作事件委托
         document.getElementById('tableBody').addEventListener('click', (e) => {
           const btn = e.target.closest('button');
@@ -481,13 +642,14 @@
             deleteRecord(id);
           }
         });
+
+        bindFilterEvents();
       }
 
       // 初始化
       loadData();
       renderTable();
       bindEvents();
-      // 默认日期设为今天
       document.getElementById('applyDate').value = new Date().toISOString().split('T')[0];
     })();
   </script>
