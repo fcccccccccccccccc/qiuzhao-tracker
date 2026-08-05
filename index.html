@@ -59,14 +59,6 @@
     .btn-primary:hover {
       background: #16325c;
     }
-    .btn-smart {
-      background: #fef3c7;
-      border-color: #fcd34d;
-      color: #92400e;
-    }
-    .btn-smart:hover {
-      background: #fde68a;
-    }
     .filter-section {
       display: flex;
       flex-wrap: wrap;
@@ -254,11 +246,6 @@
       font-size: 13px;
       margin-top: 5px;
     }
-    .smart-hint {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 8px;
-    }
   </style>
 </head>
 <body>
@@ -267,7 +254,6 @@
   <!-- 操作按钮 -->
   <div class="toolbar">
     <button class="btn-primary" id="addBtn">＋ 添加申请</button>
-    <button class="btn-smart" id="smartPasteBtn">📋 智能粘贴</button>
     <button id="exportBtn">⬇ 导出备份</button>
     <button id="importBtn">⬆ 导入数据</button>
   </div>
@@ -399,22 +385,6 @@
     </div>
   </div>
 
-  <!-- 智能粘贴模态框 -->
-  <div class="modal" id="smartModal">
-    <div class="modal-content">
-      <h2>📋 智能粘贴</h2>
-      <p style="font-size:14px; color:#4b5563; margin-bottom:12px;">粘贴招聘信息文本，自动识别公司名、职位和工作地点。</p>
-      <div class="form-group">
-        <textarea id="smartText" rows="5" placeholder="例如：&#10;【字节跳动】校招-后端开发工程师&#10;工作地点：北京 / 上海&#10;或者直接粘贴一段招聘JD..."></textarea>
-      </div>
-      <p class="smart-hint">支持识别【公司名】、公司：XXX、职位：XXX、地点：XXX 等常见格式。</p>
-      <div class="form-actions">
-        <button type="button" id="smartCancelBtn">取消</button>
-        <button type="button" class="btn-primary" id="smartParseBtn">解析并填充</button>
-      </div>
-    </div>
-  </div>
-
   <input type="file" id="importFile" accept=".json" style="display: none;">
 
   <script>
@@ -476,7 +446,6 @@
         const { company, location, category, status } = getFilters();
         return applications.filter(app => {
           if (company && !app.company.toLowerCase().includes(company)) return false;
-          // 地点模糊匹配：只要记录的地点字段包含关键词即保留
           if (location && !(app.location || '').toLowerCase().includes(location)) return false;
           if (category && app.category !== category) return false;
           if (status && app.status !== status) return false;
@@ -642,74 +611,6 @@
         renderTable();
       }
 
-      // 智能解析函数（增加地点识别）
-      function parseJobText(text) {
-        if (!text.trim()) return { company: '', position: '', location: '' };
-        let company = '', position = '', location = '';
-
-        // 1. 匹配【公司名】
-        const bracketMatch = text.match(/【(.+?)】/);
-        if (bracketMatch) company = bracketMatch[1].trim();
-
-        // 2. 匹配 公司：XXX
-        if (!company) {
-          const companyRegex = /(?:公司名称|公司|企业)\s*[：:]\s*(.+?)(?:[\s,，;；]|$)/i;
-          const cm = text.match(companyRegex);
-          if (cm) company = cm[1].trim();
-        }
-
-        // 3. 匹配 职位：XXX
-        const posRegex = /(?:岗位名称|岗位|职位|招聘职位)\s*[：:]\s*(.+?)(?:[\s,，;；]|$)/i;
-        const pm = text.match(posRegex);
-        if (pm) position = pm[1].trim();
-
-        // 4. 匹配 地点：XXX（新增）
-        const locRegex = /(?:工作地点|地点|城市|工作城市|base)\s*[：:]\s*(.+?)(?:[\s,，;；]|$)/i;
-        const lm = text.match(locRegex);
-        if (lm) location = lm[1].trim();
-
-        // 5. 如果还没提取全，用第一行拆分
-        if (!company || !position) {
-          const firstLine = text.split('\n')[0].trim();
-          let cleanLine = firstLine.replace(/校招|实习生|应届|补录/g, '').trim();
-          const parts = cleanLine.split(/[\s\-|·]+/).filter(p => p.trim().length > 0);
-          if (parts.length >= 2) {
-            if (!company) company = parts[0];
-            if (!position) position = parts.slice(1).join(' ');
-          } else if (parts.length === 1) {
-            if (!company) company = parts[0];
-          }
-        }
-
-        return { company: company || '', position: position || '', location: location || '' };
-      }
-
-      // 智能粘贴功能
-      function openSmartModal() {
-        document.getElementById('smartText').value = '';
-        document.getElementById('smartModal').classList.add('active');
-      }
-
-      function closeSmartModal() {
-        document.getElementById('smartModal').classList.remove('active');
-      }
-
-      function handleSmartParse() {
-        const text = document.getElementById('smartText').value;
-        const { company, position, location } = parseJobText(text);
-        if (!company && !position) {
-          alert('未能识别出公司和职位，请手动输入或调整粘贴内容。');
-          return;
-        }
-        closeSmartModal();
-        openAddModal();
-        document.getElementById('company').value = company;
-        document.getElementById('position').value = position;
-        if (location) {
-          document.getElementById('location').value = location;
-        }
-      }
-
       function bindFilterEvents() {
         document.getElementById('filterCompany').addEventListener('input', renderTable);
         document.getElementById('filterLocation').addEventListener('input', renderTable);
@@ -735,13 +636,6 @@
             e.target.value = '';
           }
         });
-
-        document.getElementById('smartPasteBtn').addEventListener('click', openSmartModal);
-        document.getElementById('smartCancelBtn').addEventListener('click', closeSmartModal);
-        document.getElementById('smartModal').addEventListener('click', (e) => {
-          if (e.target === document.getElementById('smartModal')) closeSmartModal();
-        });
-        document.getElementById('smartParseBtn').addEventListener('click', handleSmartParse);
 
         document.getElementById('tableBody').addEventListener('click', (e) => {
           const btn = e.target.closest('button');
