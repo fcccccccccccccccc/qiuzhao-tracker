@@ -254,7 +254,7 @@
   <!-- 操作按钮 -->
   <div class="toolbar">
     <button class="btn-primary" id="addBtn">＋ 添加申请</button>
-    <button id="exportBtn">⬇ 导出备份</button>
+    <button id="exportBtn">⬇ 导出 Excel</button>
     <button id="importBtn">⬆ 导入数据</button>
   </div>
 
@@ -496,7 +496,6 @@
       function resetForm() {
         document.getElementById('appForm').reset();
         document.getElementById('recordId').value = '';
-        // 日期默认留空，不再自动设为今天
         document.getElementById('applyDate').value = '';
         document.getElementById('category').value = '';
       }
@@ -548,7 +547,7 @@
           position,
           category,
           location,
-          date, // 可以为空字符串
+          date,
           status,
           note
         };
@@ -572,13 +571,49 @@
         renderTable();
       }
 
-      function exportData() {
-        const dataStr = JSON.stringify(applications, null, 2);
-        const blob = new Blob([dataStr], {type: 'application/json'});
+      // 格式化地点：将常见分隔符统一为中文顿号
+      function formatLocationForExport(loc) {
+        if (!loc) return '';
+        // 将 / , ; | 空格（连续）都替换为顿号，并清理多余顿号
+        return loc
+          .replace(/[\/,;|]+/g, '、')
+          .replace(/\s+/g, '、')
+          .replace(/、+/g, '、')
+          .replace(/^、|、$/g, '');
+      }
+
+      // CSV 转义
+      function csvEscape(str) {
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+      }
+
+      function exportToCSV() {
+        const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '备注'];
+        const rows = applications.map(app => [
+          app.company || '',
+          app.position || '',
+          app.category || '',
+          formatLocationForExport(app.location || ''),
+          app.date || '',
+          app.status || '',
+          app.note || ''
+        ]);
+
+        // 添加 BOM 防止 Excel 乱码
+        let csvContent = '\uFEFF';
+        csvContent += headers.map(csvEscape).join(',') + '\n';
+        rows.forEach(row => {
+          csvContent += row.map(csvEscape).join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `秋招备份_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `秋招记录_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -628,7 +663,7 @@
           if (e.target === document.getElementById('formModal')) closeFormModal();
         });
         document.getElementById('appForm').addEventListener('submit', saveRecord);
-        document.getElementById('exportBtn').addEventListener('click', exportData);
+        document.getElementById('exportBtn').addEventListener('click', exportToCSV);
         document.getElementById('importBtn').addEventListener('click', () => {
           document.getElementById('importFile').click();
         });
@@ -657,7 +692,6 @@
       loadData();
       renderTable();
       bindEvents();
-      // 注意：不再自动设置 applyDate 默认值
     })();
   </script>
 </body>
