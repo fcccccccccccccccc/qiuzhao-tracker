@@ -40,7 +40,7 @@
     .table-wrapper {
       overflow-x: auto; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 10px;
     }
-    table { width: 100%; border-collapse: collapse; min-width: 1200px; white-space: nowrap; }
+    table { width: 100%; border-collapse: collapse; min-width: 1300px; white-space: nowrap; }
     th {
       text-align: left; padding: 14px 8px; font-weight: 600; font-size: 13px; color: #5f6b7a;
       background: #f9fafb; border-bottom: 1px solid #e9ebf0;
@@ -72,10 +72,9 @@
       display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 12px;
       background: #f3f4f6; color: #4b5563; font-weight: 500;
     }
-    /* 可展开单元格 (备注 & 岗位描述) */
     .expandable-td .expandable-cell {
       display: inline-block;
-      max-width: 160px;
+      max-width: 140px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -88,13 +87,42 @@
       overflow: visible;
       max-width: none;
     }
+    .attachment-link {
+      color: #1e3c72;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .attachment-list {
+      list-style: none;
+      margin-top: 8px;
+      padding-left: 0;
+    }
+    .attachment-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    .attachment-list .file-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 10px;
+    }
+    .attachment-actions button {
+      padding: 2px 8px;
+      font-size: 12px;
+      margin-left: 4px;
+    }
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000;
     }
     .modal.active { display: flex; }
     .modal-content {
-      background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 580px;
+      background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 620px;
       box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;
     }
     .modal-content h2 { margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
@@ -107,6 +135,7 @@
     input:focus, select:focus, textarea:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
     .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .text-muted { color: #6b7280; font-size: 13px; margin-top: 5px; }
+    input[type="file"] { display: none; }
   </style>
 </head>
 <body>
@@ -116,6 +145,7 @@
     <button class="btn-primary" id="addBtn">＋ 添加申请</button>
     <button class="btn-danger" id="batchDeleteBtn" style="display:none;">🗑 批量删除</button>
     <button id="exportBtn">⬇ 导出 Excel</button>
+    <button id="exportJsonBtn">📦 导出完整备份</button>
     <button id="importBtn">⬆ 导入数据</button>
   </div>
 
@@ -174,11 +204,12 @@
           <th>当前进度</th>
           <th>岗位描述</th>
           <th>备注</th>
+          <th>附件</th>
           <th>操作</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="10" class="empty-state">还没有记录，点击上方按钮添加第一条秋招信息吧</td></tr>
+        <tr><td colspan="11" class="empty-state">还没有记录，点击上方按钮添加第一条秋招信息吧</td></tr>
       </tbody>
     </table>
   </div>
@@ -243,6 +274,14 @@
           <label>备注</label>
           <textarea id="note" rows="2" placeholder="例如：笔试时间、HR联系方式..."></textarea>
         </div>
+        <div class="form-group">
+          <label>📎 附件（简历等）</label>
+          <div id="attachmentListContainer">
+            <ul class="attachment-list" id="attachmentList"></ul>
+          </div>
+          <button type="button" class="btn" id="addAttachmentBtn">＋ 添加附件</button>
+          <input type="file" id="attachmentInput" multiple>
+        </div>
         <div class="form-actions">
           <button type="button" id="cancelBtn">取消</button>
           <button type="submit" class="btn-primary">保存</button>
@@ -255,8 +294,133 @@
 
   <script>
     (function() {
+      // ---------- IndexedDB 附件存储 ----------
+      const DB_NAME = 'QiuzhaoAttachments';
+      const DB_STORE = 'attachments';
+      let db = null;
+
+      function openDB() {
+        return new Promise((resolve, reject) => {
+          if (db) return resolve(db);
+          const request = indexedDB.open(DB_NAME, 1);
+          request.onupgradeneeded = (e) => {
+            const database = e.target.result;
+            if (!database.objectStoreNames.contains(DB_STORE)) {
+              database.createObjectStore(DB_STORE, { keyPath: 'id' }); // id = recordId + '_' + fileName
+            }
+          };
+          request.onsuccess = (e) => {
+            db = e.target.result;
+            resolve(db);
+          };
+          request.onerror = (e) => reject(e.target.error);
+        });
+      }
+
+      function attachmentId(recordId, fileName) {
+        return `${recordId}_${fileName}`;
+      }
+
+      async function saveAttachment(recordId, file) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const tx = database.transaction(DB_STORE, 'readwrite');
+            const store = tx.objectStore(DB_STORE);
+            const record = {
+              id: attachmentId(recordId, file.name),
+              recordId: recordId,
+              name: file.name,
+              type: file.type,
+              data: reader.result, // ArrayBuffer
+              size: file.size
+            };
+            store.put(record);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      async function deleteAttachment(recordId, fileName) {
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readwrite');
+        const store = tx.objectStore(DB_STORE);
+        store.delete(attachmentId(recordId, fileName));
+        return new Promise((resolve, reject) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = (e) => reject(e.target.error);
+        });
+      }
+
+      async function getAttachmentsByRecord(recordId) {
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readonly');
+        const store = tx.objectStore(DB_STORE);
+        const index = store.index('recordId');
+        if (!index) {
+          // 如果索引不存在，手动遍历（兼容旧版本）
+          const all = await new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (e) => reject(e.target.error);
+          });
+          return all.filter(a => a.recordId === recordId).map(({ name, type, size }) => ({ name, type, size }));
+        }
+        // 新版使用索引
+        // 但由于初始版本没有索引，我们选择不建索引，直接遍历过滤，简单可靠
+        const allRecords = await new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (e) => reject(e.target.error);
+        });
+        return allRecords.filter(a => a.recordId === recordId).map(({ name, type, size }) => ({ name, type, size }));
+      }
+
+      async function downloadAttachment(recordId, fileName) {
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readonly');
+        const store = tx.objectStore(DB_STORE);
+        const request = store.get(attachmentId(recordId, fileName));
+        request.onsuccess = () => {
+          const record = request.result;
+          if (record) {
+            const blob = new Blob([record.data], { type: record.type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = record.name;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        };
+        request.onerror = (e) => alert('下载失败：' + e.target.error);
+      }
+
+      async function deleteAttachmentsByRecord(recordId) {
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readwrite');
+        const store = tx.objectStore(DB_STORE);
+        const all = await new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (e) => reject(e.target.error);
+        });
+        const toDelete = all.filter(a => a.recordId === recordId);
+        toDelete.forEach(a => store.delete(a.id));
+        return new Promise((resolve, reject) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = (e) => reject(e.target.error);
+        });
+      }
+
+      // ---------- 主应用 ----------
       const STORAGE_KEY = 'qiuzhao_applications_v2';
       let applications = [];
+      // 附件计数缓存：{ recordId: number }
+      let attachmentCountCache = {};
 
       function loadData() {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -300,20 +464,32 @@
         });
       }
 
-      function updateBatchDeleteButton() {
-        const checkedCount = document.querySelectorAll('#tableBody .row-checkbox:checked').length;
-        const btn = document.getElementById('batchDeleteBtn');
-        btn.style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+      // 更新附件计数缓存
+      async function refreshAttachmentCounts() {
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readonly');
+        const store = tx.objectStore(DB_STORE);
+        const all = await new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (e) => reject(e.target.error);
+        });
+        const counts = {};
+        all.forEach(a => {
+          counts[a.recordId] = (counts[a.recordId] || 0) + 1;
+        });
+        attachmentCountCache = counts;
       }
 
-      function renderTable() {
+      async function renderTable() {
+        await refreshAttachmentCounts();
         const filtered = getFilteredApplications();
         const tbody = document.getElementById('tableBody');
         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
         selectAllCheckbox.checked = false;
 
         if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="10" class="empty-state">没有匹配的记录</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="11" class="empty-state">没有匹配的记录</td></tr>`;
           updateBatchDeleteButton();
           return;
         }
@@ -324,6 +500,7 @@
           const categoryText = app.category || '未分类';
           const descText = app.jobDescription || '-';
           const remarkText = app.note || '-';
+          const attachCount = attachmentCountCache[app.id] || 0;
           html += `
             <tr data-id="${app.id}">
               <td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${app.id}"></td>
@@ -333,11 +510,12 @@
               <td>${escapeHtml(app.location || '-')}</td>
               <td>${escapeHtml(app.date || '-')}</td>
               <td><span class="status-badge ${statusClass}">${escapeHtml(app.status || '待投递')}</span></td>
-              <td class="expandable-td" data-desc-id="${app.id}">
-                <span class="expandable-cell" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span>
-              </td>
-              <td class="expandable-td" data-remark-id="${app.id}">
-                <span class="expandable-cell" title="${escapeHtml(remarkText)}">${escapeHtml(remarkText)}</span>
+              <td class="expandable-td"><span class="expandable-cell" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span></td>
+              <td class="expandable-td"><span class="expandable-cell" title="${escapeHtml(remarkText)}">${escapeHtml(remarkText)}</span></td>
+              <td>
+                ${attachCount > 0 
+                  ? `<span class="attachment-link" data-record-id="${app.id}">📎 ${attachCount}个文件</span>`
+                  : '<span style="color:#9ca3af;">无</span>'}
               </td>
               <td>
                 <button class="action-btn edit" data-id="${app.id}">✏️编辑</button>
@@ -350,6 +528,11 @@
         updateBatchDeleteButton();
       }
 
+      function updateBatchDeleteButton() {
+        const checkedCount = document.querySelectorAll('#tableBody .row-checkbox:checked').length;
+        document.getElementById('batchDeleteBtn').style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+      }
+
       function escapeHtml(text) {
         return String(text)
           .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -360,42 +543,129 @@
         return Array.from(checkboxes).map(cb => cb.dataset.id);
       }
 
-      function batchDelete() {
+      async function batchDelete() {
         const selectedIds = getSelectedIds();
-        if (selectedIds.length === 0) {
-          alert('请至少选择一条记录');
-          return;
-        }
+        if (selectedIds.length === 0) { alert('请至少选择一条记录'); return; }
         if (!confirm(`确定要删除选中的 ${selectedIds.length} 条记录吗？此操作不可恢复。`)) return;
+        // 删除附件
+        for (const id of selectedIds) {
+          await deleteAttachmentsByRecord(id);
+        }
         applications = applications.filter(app => !selectedIds.includes(app.id));
         saveData();
         renderTable();
       }
 
-      function toggleSelectAll(e) {
-        const checked = e.target.checked;
-        const checkboxes = document.querySelectorAll('#tableBody .row-checkbox');
-        checkboxes.forEach(cb => { cb.checked = checked; });
-        updateBatchDeleteButton();
+      async function deleteRecord(id) {
+        if (!confirm('确定要删除这条记录吗？')) return;
+        await deleteAttachmentsByRecord(id);
+        applications = applications.filter(a => a.id !== id);
+        saveData();
+        renderTable();
       }
 
-      function resetForm() {
-        document.getElementById('appForm').reset();
-        document.getElementById('recordId').value = '';
-        document.getElementById('applyDate').value = '';
-        document.getElementById('category').value = '';
-        document.getElementById('jobDescription').value = '';
+      // ---------- 表单附件管理 ----------
+      let currentFormAttachments = []; // [{ name, file }] 用于新增的临时文件
+      let editingRecordId = null;
+
+      function resetAttachmentUI() {
+        currentFormAttachments = [];
+        document.getElementById('attachmentList').innerHTML = '';
+        document.getElementById('attachmentInput').value = '';
       }
+
+      async function loadAttachmentsForEdit(recordId) {
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readonly');
+        const store = tx.objectStore(DB_STORE);
+        const all = await new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (e) => reject(e.target.error);
+        });
+        const attached = all.filter(a => a.recordId === recordId);
+        renderAttachmentList(attached.map(a => ({ name: a.name, size: a.size })), true);
+      }
+
+      function renderAttachmentList(files, isSaved = false) {
+        const listEl = document.getElementById('attachmentList');
+        listEl.innerHTML = '';
+        files.forEach((file, index) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)} ${file.size ? `(${(file.size/1024).toFixed(1)} KB)` : ''}</span>
+            <span class="attachment-actions">
+              ${isSaved 
+                ? `<button type="button" class="btn download-attachment" data-file="${escapeHtml(file.name)}">⬇下载</button>`
+                : ''}
+              <button type="button" class="btn delete-attachment" data-index="${index}" data-saved="${isSaved}" data-file="${escapeHtml(file.name)}">✕</button>
+            </span>
+          `;
+          listEl.appendChild(li);
+        });
+      }
+
+      async function handleAttachmentDelete(e) {
+        const btn = e.target.closest('.delete-attachment');
+        if (!btn) return;
+        const isSaved = btn.dataset.saved === 'true';
+        const index = parseInt(btn.dataset.index);
+        const fileName = btn.dataset.file;
+
+        if (isSaved && editingRecordId) {
+          // 从 IndexedDB 删除
+          await deleteAttachment(editingRecordId, fileName);
+          // 重新加载列表
+          await loadAttachmentsForEdit(editingRecordId);
+        } else {
+          // 临时文件删除
+          currentFormAttachments.splice(index, 1);
+          renderAttachmentList(currentFormAttachments.map(f => ({ name: f.name, size: f.size })), false);
+        }
+      }
+
+      function handleAttachmentDownload(e) {
+        const btn = e.target.closest('.download-attachment');
+        if (!btn) return;
+        const fileName = btn.dataset.file;
+        if (editingRecordId) {
+          downloadAttachment(editingRecordId, fileName);
+        }
+      }
+
+      // 添加附件按钮
+      document.getElementById('addAttachmentBtn').addEventListener('click', () => {
+        document.getElementById('attachmentInput').click();
+      });
+
+      document.getElementById('attachmentInput').addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+          currentFormAttachments.push({ name: file.name, size: file.size, file: file });
+        });
+        renderAttachmentList(currentFormAttachments.map(f => ({ name: f.name, size: f.size })), false);
+        e.target.value = '';
+      });
+
+      // 事件委托在附件列表上
+      document.getElementById('attachmentList').addEventListener('click', function(e) {
+        handleAttachmentDelete(e);
+        handleAttachmentDownload(e);
+      });
 
       function openAddModal() {
         resetForm();
+        resetAttachmentUI();
+        editingRecordId = null;
         document.getElementById('modalTitle').textContent = '添加申请';
         document.getElementById('formModal').classList.add('active');
       }
 
-      function openEditModal(id) {
+      async function openEditModal(id) {
         const app = applications.find(a => a.id === id);
         if (!app) return;
+        resetAttachmentUI();
+        editingRecordId = id;
         document.getElementById('recordId').value = app.id;
         document.getElementById('company').value = app.company;
         document.getElementById('position').value = app.position;
@@ -407,11 +677,14 @@
         document.getElementById('note').value = app.note || '';
         document.getElementById('modalTitle').textContent = '编辑申请';
         document.getElementById('formModal').classList.add('active');
+        await loadAttachmentsForEdit(id);
       }
 
-      function closeFormModal() { document.getElementById('formModal').classList.remove('active'); }
+      function closeFormModal() {
+        document.getElementById('formModal').classList.remove('active');
+      }
 
-      function saveRecord(e) {
+      async function saveRecord(e) {
         e.preventDefault();
         const id = document.getElementById('recordId').value;
         const company = document.getElementById('company').value.trim();
@@ -425,11 +698,19 @@
 
         if (!company || !position) { alert('公司名称和职位不能为空'); return; }
 
+        const recordId = id || generateId();
         const record = {
-          id: id || generateId(),
+          id: recordId,
           company, position, category, location, date, status,
           jobDescription, note
         };
+
+        // 保存新附件
+        for (const item of currentFormAttachments) {
+          if (item.file) {
+            await saveAttachment(recordId, item.file);
+          }
+        }
 
         if (id) {
           const index = applications.findIndex(a => a.id === id);
@@ -442,13 +723,15 @@
         closeFormModal();
       }
 
-      function deleteRecord(id) {
-        if (!confirm('确定要删除这条记录吗？')) return;
-        applications = applications.filter(a => a.id !== id);
-        saveData();
-        renderTable();
+      function resetForm() {
+        document.getElementById('appForm').reset();
+        document.getElementById('recordId').value = '';
+        document.getElementById('applyDate').value = '';
+        document.getElementById('category').value = '';
+        document.getElementById('jobDescription').value = '';
       }
 
+      // ---------- 导出/导入 ----------
       function formatLocationForExport(loc) {
         if (!loc) return '';
         return loc.replace(/[\/,;|]+/g, '、').replace(/\s+/g, '、').replace(/、+/g, '、').replace(/^、|、$/g, '');
@@ -461,12 +744,13 @@
         return str;
       }
 
-      function exportToCSV() {
-        const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '岗位描述', '备注'];
+      async function exportToCSV() {
+        await refreshAttachmentCounts();
+        const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '岗位描述', '备注', '附件数量'];
         const rows = applications.map(app => [
           app.company || '', app.position || '', app.category || '',
           formatLocationForExport(app.location || ''), app.date || '', app.status || '',
-          app.jobDescription || '', app.note || ''
+          app.jobDescription || '', app.note || '', attachmentCountCache[app.id] || 0
         ]);
         let csvContent = '\uFEFF';
         csvContent += headers.map(csvEscape).join(',') + '\n';
@@ -480,53 +764,131 @@
         URL.revokeObjectURL(url);
       }
 
-      function parseCSV(text) {
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length < 2) return [];
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        const data = [];
-        for (let i = 1; i < lines.length; i++) {
-          const values = [];
-          let current = '', inQuotes = false;
-          for (const ch of lines[i]) {
-            if (ch === '"') { inQuotes = !inQuotes; continue; }
-            if (ch === ',' && !inQuotes) { values.push(current.trim()); current = ''; continue; }
-            current += ch;
-          }
-          values.push(current.trim());
-          const obj = {};
-          const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note' };
-          headers.forEach((header, idx) => {
-            let val = values[idx] ? values[idx].replace(/^"|"$/g, '') : '';
-            const key = map[header] || header;
-            obj[key] = val;
-          });
-          if (obj.company || obj.position) data.push(obj);
-        }
-        return data;
+      async function exportFullBackup() {
+        // 导出完整 JSON，包含附件 base64
+        if (!confirm('导出完整备份包含所有附件文件（可能较大），继续吗？')) return;
+        const database = await openDB();
+        const tx = database.transaction(DB_STORE, 'readonly');
+        const store = tx.objectStore(DB_STORE);
+        const allAttachments = await new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (e) => reject(e.target.error);
+        });
+
+        const backup = {
+          version: 2,
+          applications: applications,
+          attachments: await Promise.all(allAttachments.map(async att => ({
+            id: att.id,
+            recordId: att.recordId,
+            name: att.name,
+            type: att.type,
+            size: att.size,
+            dataBase64: await blobToBase64(new Blob([att.data], { type: att.type }))
+          })))
+        };
+
+        const jsonStr = JSON.stringify(backup);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `秋招完整备份_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
       }
 
-      function handleImportFile(file) {
+      function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      function base64ToBlob(base64, type) {
+        const byteChars = atob(base64);
+        const byteArrays = [];
+        for (let offset = 0; offset < byteChars.length; offset += 512) {
+          const slice = byteChars.slice(offset, offset + 512);
+          const byteNumbers = new Array(slice.length);
+          for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+          }
+          byteArrays.push(new Uint8Array(byteNumbers));
+        }
+        return new Blob(byteArrays, { type });
+      }
+
+      async function handleImportFile(file) {
         const ext = file.name.split('.').pop().toLowerCase();
         const reader = new FileReader();
+
         if (ext === 'json') {
-          reader.onload = (e) => {
+          reader.onload = async (e) => {
             try {
-              const imported = JSON.parse(e.target.result);
-              if (!Array.isArray(imported)) throw new Error('格式错误');
-              if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-              applications = imported.map(item => ({
-                ...item,
-                category: item.category || '',
-                location: item.location || '',
-                jobDescription: item.jobDescription || ''
-              }));
-              saveData(); renderTable(); alert('导入成功！');
+              const data = JSON.parse(e.target.result);
+              // 检测是否完整备份（包含 attachments）
+              if (data.applications && data.attachments) {
+                if (!confirm('导入完整备份将覆盖所有记录和附件，确定继续吗？')) return;
+                // 清空所有附件
+                const database = await openDB();
+                const tx = database.transaction(DB_STORE, 'readwrite');
+                const store = tx.objectStore(DB_STORE);
+                store.clear();
+                await new Promise((resolve, reject) => {
+                  tx.oncomplete = resolve;
+                  tx.onerror = (e) => reject(e.target.error);
+                });
+                // 恢复附件
+                for (const att of data.attachments) {
+                  const blob = base64ToBlob(att.dataBase64, att.type);
+                  const arrayBuffer = await blob.arrayBuffer();
+                  const tx2 = database.transaction(DB_STORE, 'readwrite');
+                  const store2 = tx2.objectStore(DB_STORE);
+                  store2.put({
+                    id: att.id,
+                    recordId: att.recordId,
+                    name: att.name,
+                    type: att.type,
+                    data: arrayBuffer,
+                    size: att.size
+                  });
+                  await new Promise((resolve, reject) => {
+                    tx2.oncomplete = resolve;
+                    tx2.onerror = (e) => reject(e.target.error);
+                  });
+                }
+                applications = data.applications.map(app => ({
+                  ...app,
+                  category: app.category || '',
+                  location: app.location || '',
+                  jobDescription: app.jobDescription || ''
+                }));
+                saveData();
+                renderTable();
+                alert('完整备份导入成功！');
+              } else if (Array.isArray(data)) {
+                if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？（附件不会自动迁移）')) return;
+                applications = data.map(item => ({
+                  ...item,
+                  category: item.category || '',
+                  location: item.location || '',
+                  jobDescription: item.jobDescription || ''
+                }));
+                saveData();
+                renderTable();
+                alert('导入成功！（附件需手动添加）');
+              } else {
+                alert('文件格式不正确');
+              }
             } catch (error) { alert('JSON 文件格式不正确'); }
           };
           reader.readAsText(file);
         } else if (ext === 'csv') {
-          reader.onload = (e) => {
+          reader.onload = async (e) => {
             const data = parseCSV(e.target.result);
             if (data.length === 0) { alert('CSV 文件为空或格式不正确'); return; }
             if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
@@ -545,7 +907,7 @@
           };
           reader.readAsText(file);
         } else if (ext === 'xlsx' || ext === 'xls') {
-          reader.onload = (e) => {
+          reader.onload = async (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.SheetNames[0];
@@ -586,6 +948,32 @@
         }
       }
 
+      function parseCSV(text) {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = [];
+          let current = '', inQuotes = false;
+          for (const ch of lines[i]) {
+            if (ch === '"') { inQuotes = !inQuotes; continue; }
+            if (ch === ',' && !inQuotes) { values.push(current.trim()); current = ''; continue; }
+            current += ch;
+          }
+          values.push(current.trim());
+          const obj = {};
+          const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note' };
+          headers.forEach((header, idx) => {
+            let val = values[idx] ? values[idx].replace(/^"|"$/g, '') : '';
+            const key = map[header] || header;
+            obj[key] = val;
+          });
+          if (obj.company || obj.position) data.push(obj);
+        }
+        return data;
+      }
+
       function resetFilters() {
         document.getElementById('filterCompany').value = '';
         document.getElementById('filterLocation').value = '';
@@ -594,14 +982,7 @@
         renderTable();
       }
 
-      function bindFilterEvents() {
-        document.getElementById('filterCompany').addEventListener('input', renderTable);
-        document.getElementById('filterLocation').addEventListener('input', renderTable);
-        document.getElementById('filterCategory').addEventListener('change', renderTable);
-        document.getElementById('filterStatus').addEventListener('change', renderTable);
-        document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
-      }
-
+      // ---------- 事件绑定 ----------
       function bindEvents() {
         document.getElementById('addBtn').addEventListener('click', openAddModal);
         document.getElementById('cancelBtn').addEventListener('click', closeFormModal);
@@ -610,6 +991,7 @@
         });
         document.getElementById('appForm').addEventListener('submit', saveRecord);
         document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+        document.getElementById('exportJsonBtn').addEventListener('click', exportFullBackup);
         document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
         document.getElementById('importFile').addEventListener('change', (e) => {
           if (e.target.files.length > 0) {
@@ -619,16 +1001,39 @@
         });
 
         document.getElementById('batchDeleteBtn').addEventListener('click', batchDelete);
-        document.getElementById('selectAllCheckbox').addEventListener('change', toggleSelectAll);
+        document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
+          const checked = e.target.checked;
+          document.querySelectorAll('#tableBody .row-checkbox').forEach(cb => { cb.checked = checked; });
+          updateBatchDeleteButton();
+        });
 
-        document.getElementById('tableBody').addEventListener('click', (e) => {
-          // 展开/折叠 (岗位描述 & 备注)
+        // 表格事件委托
+        document.getElementById('tableBody').addEventListener('click', async (e) => {
+          // 附件链接点击 -> 弹出附件列表（简单模态或内联处理，这里简单弹出下载）
+          const attachLink = e.target.closest('.attachment-link');
+          if (attachLink) {
+            const recordId = attachLink.dataset.recordId;
+            const attachments = await getAttachmentsByRecord(recordId);
+            if (attachments.length === 0) return;
+            // 简单起见：直接依次下载？或者创建一个选择菜单。这里我们列出文件名并允许点击下载
+            const fileList = attachments.map(a => a.name).join('\n');
+            const choice = prompt('附件列表（输入序号下载，或取消）：\n' + attachments.map((a, i) => `${i+1}. ${a.name}`).join('\n'));
+            if (choice !== null) {
+              const idx = parseInt(choice) - 1;
+              if (idx >= 0 && idx < attachments.length) {
+                downloadAttachment(recordId, attachments[idx].name);
+              }
+            }
+            return;
+          }
+
+          // 展开/折叠
           const expandableTd = e.target.closest('.expandable-td');
           if (expandableTd) {
             expandableTd.classList.toggle('expanded');
             return;
           }
-          // 复选框变化
+          // 复选框
           if (e.target.classList.contains('row-checkbox')) {
             updateBatchDeleteButton();
             return;
@@ -641,12 +1046,21 @@
           else if (btn.classList.contains('delete')) deleteRecord(id);
         });
 
-        bindFilterEvents();
+        // 筛选
+        document.getElementById('filterCompany').addEventListener('input', renderTable);
+        document.getElementById('filterLocation').addEventListener('input', renderTable);
+        document.getElementById('filterCategory').addEventListener('change', renderTable);
+        document.getElementById('filterStatus').addEventListener('change', renderTable);
+        document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
       }
 
-      loadData();
-      renderTable();
-      bindEvents();
+      // 启动
+      (async function init() {
+        await openDB();
+        loadData();
+        await renderTable();
+        bindEvents();
+      })();
     })();
   </script>
 </body>
