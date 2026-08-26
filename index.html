@@ -7,51 +7,29 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: #f5f7fa; color: #333; padding: 20px; max-width: 1300px; margin: 0 auto;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: #333; padding: 20px; max-width: 1300px; margin: 0 auto; }
     h1 { text-align: center; margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
-    .toolbar {
-      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-bottom: 16px;
-    }
-    button, .btn {
-      background: white; border: 1px solid #d0d5dd; padding: 10px 18px; border-radius: 10px;
-      font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-bottom: 16px; }
+    button, .btn { background: white; border: 1px solid #d0d5dd; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
     button:hover, .btn:hover { background: #f0f2f5; border-color: #b0b7c3; }
     .btn-primary { background: #1e3c72; border-color: #1e3c72; color: white; }
     .btn-primary:hover { background: #16325c; }
     .btn-danger { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
     .btn-danger:hover { background: #fecaca; }
-    .filter-section {
-      display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;
-      margin-bottom: 16px; background: white; padding: 14px 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
+    .filter-section { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-bottom: 16px; background: white; padding: 14px 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     .filter-item { display: flex; align-items: center; gap: 6px; font-size: 14px; }
     .filter-item label { font-weight: 500; color: #374151; white-space: nowrap; }
-    .filter-item input, .filter-item select {
-      padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: white; min-width: 150px;
-    }
+    .filter-item input, .filter-item select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: white; min-width: 150px; }
     .filter-item input:focus, .filter-item select:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
     .reset-btn { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
     .reset-btn:hover { background: #fecaca; }
-    .table-wrapper {
-      overflow-x: auto; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 10px;
-    }
+    .table-wrapper { overflow-x: auto; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 10px; }
     table { width: 100%; border-collapse: collapse; min-width: 1300px; white-space: nowrap; }
-    th {
-      text-align: left; padding: 14px 8px; font-weight: 600; font-size: 13px; color: #5f6b7a;
-      background: #f9fafb; border-bottom: 1px solid #e9ebf0;
-    }
+    th { text-align: left; padding: 14px 8px; font-weight: 600; font-size: 13px; color: #5f6b7a; background: #f9fafb; border-bottom: 1px solid #e9ebf0; }
     td { padding: 12px 8px; border-bottom: 1px solid #f0f2f5; font-size: 14px; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     .checkbox-cell { width: 30px; text-align: center; }
-    .status-badge {
-      display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 500;
-      background: #eef2ff; color: #4338ca;
-    }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 500; background: #eef2ff; color: #4338ca; }
     .status-待投递 { background: #f3f4f6; color: #6b7280; }
     .status-已投递 { background: #e0f2fe; color: #0369a1; }
     .status-测评 { background: #fef3c7; color: #b45309; }
@@ -61,81 +39,33 @@
     .status-Offer { background: #c6f6d5; color: #14532d; font-weight: 600; }
     .status-拒信 { background: #fee2e2; color: #991b1b; }
     .status-已签约 { background: #bae6fd; color: #0c4a6e; font-weight: 600; }
-    .action-btn {
-      background: none; border: none; padding: 4px 10px; border-radius: 6px; font-size: 13px;
-      cursor: pointer; color: #4b5563; margin-right: 4px;
-    }
+    .action-btn { background: none; border: none; padding: 4px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #4b5563; margin-right: 4px; }
     .action-btn:hover { background: #f3f4f6; }
     .action-btn.delete { color: #b91c1c; }
     .empty-state { text-align: center; padding: 40px; color: #9ca3af; font-size: 15px; }
-    .category-badge {
-      display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 12px;
-      background: #f3f4f6; color: #4b5563; font-weight: 500;
-    }
-    .expandable-td .expandable-cell {
-      display: inline-block;
-      max-width: 140px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      cursor: pointer;
-      vertical-align: middle;
-      transition: all 0.2s;
-    }
-    .expandable-td.expanded .expandable-cell {
-      white-space: normal;
-      overflow: visible;
-      max-width: none;
-    }
-    .attachment-link {
-      color: #1e3c72;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    .attachment-list {
-      list-style: none;
-      margin-top: 8px;
-      padding-left: 0;
-    }
-    .attachment-list li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      font-size: 13px;
-    }
-    .attachment-list .file-name {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      margin-right: 10px;
-    }
-    .attachment-actions button {
-      padding: 2px 8px;
-      font-size: 12px;
-      margin-left: 4px;
-    }
-    .modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000;
-    }
+    .category-badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 12px; background: #f3f4f6; color: #4b5563; font-weight: 500; }
+    .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
+    .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
+    .attachment-link { color: #1e3c72; cursor: pointer; text-decoration: underline; }
+    .attachment-list { list-style: none; margin-top: 8px; padding-left: 0; }
+    .attachment-list li { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+    .attachment-list .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+    .attachment-actions button { padding: 2px 8px; font-size: 12px; margin-left: 4px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000; }
     .modal.active { display: flex; }
-    .modal-content {
-      background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 620px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;
-    }
+    .modal-content { background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 620px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
     .modal-content h2 { margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
     .form-group { margin-bottom: 16px; }
     label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; color: #374151; }
-    input, select, textarea {
-      width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px;
-      font-size: 14px; font-family: inherit; transition: border 0.2s;
-    }
+    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
     .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .text-muted { color: #6b7280; font-size: 13px; margin-top: 5px; }
-    input[type="file"] { display: none; }
+    .progress-line-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .progress-line-item select, .progress-line-item input { min-width: 120px; }
+    .progress-line-item button { padding: 4px 10px; }
+    .timeline-date { font-size: 12px; color: #6b7280; margin-left: 5px; }
+    .timeline-tooltip { cursor: help; }
   </style>
 </head>
 <body>
@@ -267,6 +197,14 @@
           </select>
         </div>
         <div class="form-group">
+          <label>📅 进度时间线</label>
+          <div id="timelineContainer">
+            <div id="timelineList"></div>
+            <button type="button" class="btn" id="addTimelineBtn">＋ 添加进度节点</button>
+          </div>
+          <p class="text-muted">记录测评、面试等关键节点的完成日期。</p>
+        </div>
+        <div class="form-group">
           <label>岗位描述</label>
           <textarea id="jobDescription" rows="3" placeholder="例如：负责数据平台建设..."></textarea>
         </div>
@@ -306,7 +244,7 @@
           request.onupgradeneeded = (e) => {
             const database = e.target.result;
             if (!database.objectStoreNames.contains(DB_STORE)) {
-              database.createObjectStore(DB_STORE, { keyPath: 'id' }); // id = recordId + '_' + fileName
+              database.createObjectStore(DB_STORE, { keyPath: 'id' });
             }
           };
           request.onsuccess = (e) => {
@@ -317,9 +255,7 @@
         });
       }
 
-      function attachmentId(recordId, fileName) {
-        return `${recordId}_${fileName}`;
-      }
+      function attachmentId(recordId, fileName) { return `${recordId}_${fileName}`; }
 
       async function saveAttachment(recordId, file) {
         const database = await openDB();
@@ -328,14 +264,7 @@
           reader.onload = () => {
             const tx = database.transaction(DB_STORE, 'readwrite');
             const store = tx.objectStore(DB_STORE);
-            const record = {
-              id: attachmentId(recordId, file.name),
-              recordId: recordId,
-              name: file.name,
-              type: file.type,
-              data: reader.result, // ArrayBuffer
-              size: file.size
-            };
+            const record = { id: attachmentId(recordId, file.name), recordId: recordId, name: file.name, type: file.type, data: reader.result, size: file.size };
             store.put(record);
             tx.oncomplete = () => resolve();
             tx.onerror = (e) => reject(e.target.error);
@@ -349,34 +278,15 @@
         const tx = database.transaction(DB_STORE, 'readwrite');
         const store = tx.objectStore(DB_STORE);
         store.delete(attachmentId(recordId, fileName));
-        return new Promise((resolve, reject) => {
-          tx.oncomplete = () => resolve();
-          tx.onerror = (e) => reject(e.target.error);
-        });
+        return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
       }
 
       async function getAttachmentsByRecord(recordId) {
         const database = await openDB();
         const tx = database.transaction(DB_STORE, 'readonly');
         const store = tx.objectStore(DB_STORE);
-        const index = store.index('recordId');
-        if (!index) {
-          // 如果索引不存在，手动遍历（兼容旧版本）
-          const all = await new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = (e) => reject(e.target.error);
-          });
-          return all.filter(a => a.recordId === recordId).map(({ name, type, size }) => ({ name, type, size }));
-        }
-        // 新版使用索引
-        // 但由于初始版本没有索引，我们选择不建索引，直接遍历过滤，简单可靠
-        const allRecords = await new Promise((resolve, reject) => {
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = (e) => reject(e.target.error);
-        });
-        return allRecords.filter(a => a.recordId === recordId).map(({ name, type, size }) => ({ name, type, size }));
+        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
+        return all.filter(a => a.recordId === recordId).map(({ name, type, size }) => ({ name, type, size }));
       }
 
       async function downloadAttachment(recordId, fileName) {
@@ -403,23 +313,15 @@
         const database = await openDB();
         const tx = database.transaction(DB_STORE, 'readwrite');
         const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => {
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = (e) => reject(e.target.error);
-        });
+        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
         const toDelete = all.filter(a => a.recordId === recordId);
         toDelete.forEach(a => store.delete(a.id));
-        return new Promise((resolve, reject) => {
-          tx.oncomplete = () => resolve();
-          tx.onerror = (e) => reject(e.target.error);
-        });
+        return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
       }
 
       // ---------- 主应用 ----------
       const STORAGE_KEY = 'qiuzhao_applications_v2';
       let applications = [];
-      // 附件计数缓存：{ recordId: number }
       let attachmentCountCache = {};
 
       function loadData() {
@@ -437,7 +339,8 @@
           category: app.category || '',
           status: app.status || '待投递',
           location: app.location || '',
-          jobDescription: app.jobDescription || ''
+          jobDescription: app.jobDescription || '',
+          progressHistory: app.progressHistory || []   // 新增字段
         }));
       }
 
@@ -464,21 +367,28 @@
         });
       }
 
-      // 更新附件计数缓存
       async function refreshAttachmentCounts() {
         const database = await openDB();
         const tx = database.transaction(DB_STORE, 'readonly');
         const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => {
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = (e) => reject(e.target.error);
-        });
+        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
         const counts = {};
-        all.forEach(a => {
-          counts[a.recordId] = (counts[a.recordId] || 0) + 1;
-        });
+        all.forEach(a => { counts[a.recordId] = (counts[a.recordId] || 0) + 1; });
         attachmentCountCache = counts;
+      }
+
+      function getLatestDateForStatus(history, status) {
+        if (!history || history.length === 0) return '';
+        const filtered = history.filter(h => h.status === status);
+        if (filtered.length === 0) return '';
+        const dates = filtered.map(h => h.date).filter(d => d);
+        if (dates.length === 0) return '';
+        return dates.sort().reverse()[0]; // 最近日期
+      }
+
+      function formatTimeline(history) {
+        if (!history || history.length === 0) return '';
+        return history.map(h => `${h.status}${h.date ? ':' + h.date : ''}`).join('; ');
       }
 
       async function renderTable() {
@@ -501,6 +411,9 @@
           const descText = app.jobDescription || '-';
           const remarkText = app.note || '-';
           const attachCount = attachmentCountCache[app.id] || 0;
+          const latestDate = getLatestDateForStatus(app.progressHistory, app.status);
+          const timelineStr = formatTimeline(app.progressHistory);
+          const timelineTitle = timelineStr ? `进度时间线：\n${timelineStr}` : '';
           html += `
             <tr data-id="${app.id}">
               <td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${app.id}"></td>
@@ -509,14 +422,13 @@
               <td><span class="category-badge">${escapeHtml(categoryText)}</span></td>
               <td>${escapeHtml(app.location || '-')}</td>
               <td>${escapeHtml(app.date || '-')}</td>
-              <td><span class="status-badge ${statusClass}">${escapeHtml(app.status || '待投递')}</span></td>
+              <td>
+                <span class="status-badge ${statusClass}">${escapeHtml(app.status || '待投递')}</span>
+                ${latestDate ? `<span class="timeline-date timeline-tooltip" title="${escapeHtml(timelineTitle)}">📅 ${escapeHtml(latestDate)}</span>` : ''}
+              </td>
               <td class="expandable-td"><span class="expandable-cell" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span></td>
               <td class="expandable-td"><span class="expandable-cell" title="${escapeHtml(remarkText)}">${escapeHtml(remarkText)}</span></td>
-              <td>
-                ${attachCount > 0 
-                  ? `<span class="attachment-link" data-record-id="${app.id}">📎 ${attachCount}个文件</span>`
-                  : '<span style="color:#9ca3af;">无</span>'}
-              </td>
+              <td>${attachCount > 0 ? `<span class="attachment-link" data-record-id="${app.id}">📎 ${attachCount}个文件</span>` : '<span style="color:#9ca3af;">无</span>'}</td>
               <td>
                 <button class="action-btn edit" data-id="${app.id}">✏️编辑</button>
                 <button class="action-btn delete" data-id="${app.id}">🗑删除</button>
@@ -534,8 +446,7 @@
       }
 
       function escapeHtml(text) {
-        return String(text)
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
       }
 
       function getSelectedIds() {
@@ -547,10 +458,7 @@
         const selectedIds = getSelectedIds();
         if (selectedIds.length === 0) { alert('请至少选择一条记录'); return; }
         if (!confirm(`确定要删除选中的 ${selectedIds.length} 条记录吗？此操作不可恢复。`)) return;
-        // 删除附件
-        for (const id of selectedIds) {
-          await deleteAttachmentsByRecord(id);
-        }
+        for (const id of selectedIds) { await deleteAttachmentsByRecord(id); }
         applications = applications.filter(app => !selectedIds.includes(app.id));
         saveData();
         renderTable();
@@ -564,8 +472,64 @@
         renderTable();
       }
 
+      // ---------- 表单中的进度时间线管理 ----------
+      let currentTimeline = []; // [{status, date}]
+
+      function renderTimelineList() {
+        const listEl = document.getElementById('timelineList');
+        listEl.innerHTML = '';
+        currentTimeline.forEach((item, index) => {
+          const li = document.createElement('div');
+          li.className = 'progress-line-item';
+          li.innerHTML = `
+            <select class="timeline-status" data-index="${index}">
+              ${['待投递','已投递','测评','笔试','一面','二面','HR面','终面','Offer','拒信','已签约'].map(s => `<option value="${s}" ${s === item.status ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+            <input type="date" class="timeline-date-input" data-index="${index}" value="${item.date || ''}">
+            <button type="button" class="btn delete-timeline" data-index="${index}">✕</button>
+          `;
+          listEl.appendChild(li);
+        });
+
+        // 绑定事件
+        listEl.querySelectorAll('.timeline-status').forEach(sel => {
+          sel.addEventListener('change', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            currentTimeline[idx].status = e.target.value;
+          });
+        });
+        listEl.querySelectorAll('.timeline-date-input').forEach(inp => {
+          inp.addEventListener('change', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            currentTimeline[idx].date = e.target.value;
+          });
+        });
+        listEl.querySelectorAll('.delete-timeline').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            currentTimeline.splice(idx, 1);
+            renderTimelineList();
+          });
+        });
+      }
+
+      function addTimelineItem(status = '', date = '') {
+        currentTimeline.push({ status: status || '测评', date: date || '' });
+        renderTimelineList();
+      }
+
+      function resetTimelineUI() {
+        currentTimeline = [];
+        document.getElementById('timelineList').innerHTML = '';
+      }
+
+      function loadTimelineForEdit(history) {
+        currentTimeline = history ? JSON.parse(JSON.stringify(history)) : [];
+        renderTimelineList();
+      }
+
       // ---------- 表单附件管理 ----------
-      let currentFormAttachments = []; // [{ name, file }] 用于新增的临时文件
+      let currentFormAttachments = [];
       let editingRecordId = null;
 
       function resetAttachmentUI() {
@@ -578,11 +542,7 @@
         const database = await openDB();
         const tx = database.transaction(DB_STORE, 'readonly');
         const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => {
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = (e) => reject(e.target.error);
-        });
+        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
         const attached = all.filter(a => a.recordId === recordId);
         renderAttachmentList(attached.map(a => ({ name: a.name, size: a.size })), true);
       }
@@ -595,9 +555,7 @@
           li.innerHTML = `
             <span class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)} ${file.size ? `(${(file.size/1024).toFixed(1)} KB)` : ''}</span>
             <span class="attachment-actions">
-              ${isSaved 
-                ? `<button type="button" class="btn download-attachment" data-file="${escapeHtml(file.name)}">⬇下载</button>`
-                : ''}
+              ${isSaved ? `<button type="button" class="btn download-attachment" data-file="${escapeHtml(file.name)}">⬇下载</button>` : ''}
               <button type="button" class="btn delete-attachment" data-index="${index}" data-saved="${isSaved}" data-file="${escapeHtml(file.name)}">✕</button>
             </span>
           `;
@@ -611,14 +569,10 @@
         const isSaved = btn.dataset.saved === 'true';
         const index = parseInt(btn.dataset.index);
         const fileName = btn.dataset.file;
-
         if (isSaved && editingRecordId) {
-          // 从 IndexedDB 删除
           await deleteAttachment(editingRecordId, fileName);
-          // 重新加载列表
           await loadAttachmentsForEdit(editingRecordId);
         } else {
-          // 临时文件删除
           currentFormAttachments.splice(index, 1);
           renderAttachmentList(currentFormAttachments.map(f => ({ name: f.name, size: f.size })), false);
         }
@@ -628,12 +582,9 @@
         const btn = e.target.closest('.download-attachment');
         if (!btn) return;
         const fileName = btn.dataset.file;
-        if (editingRecordId) {
-          downloadAttachment(editingRecordId, fileName);
-        }
+        if (editingRecordId) downloadAttachment(editingRecordId, fileName);
       }
 
-      // 添加附件按钮
       document.getElementById('addAttachmentBtn').addEventListener('click', () => {
         document.getElementById('attachmentInput').click();
       });
@@ -647,15 +598,20 @@
         e.target.value = '';
       });
 
-      // 事件委托在附件列表上
       document.getElementById('attachmentList').addEventListener('click', function(e) {
         handleAttachmentDelete(e);
         handleAttachmentDownload(e);
       });
 
+      // 添加进度时间线按钮
+      document.getElementById('addTimelineBtn').addEventListener('click', () => {
+        addTimelineItem();
+      });
+
       function openAddModal() {
         resetForm();
         resetAttachmentUI();
+        resetTimelineUI();
         editingRecordId = null;
         document.getElementById('modalTitle').textContent = '添加申请';
         document.getElementById('formModal').classList.add('active');
@@ -675,14 +631,13 @@
         document.getElementById('status').value = app.status || '待投递';
         document.getElementById('jobDescription').value = app.jobDescription || '';
         document.getElementById('note').value = app.note || '';
+        loadTimelineForEdit(app.progressHistory);
         document.getElementById('modalTitle').textContent = '编辑申请';
         document.getElementById('formModal').classList.add('active');
         await loadAttachmentsForEdit(id);
       }
 
-      function closeFormModal() {
-        document.getElementById('formModal').classList.remove('active');
-      }
+      function closeFormModal() { document.getElementById('formModal').classList.remove('active'); }
 
       async function saveRecord(e) {
         e.preventDefault();
@@ -695,6 +650,7 @@
         const status = document.getElementById('status').value;
         const jobDescription = document.getElementById('jobDescription').value.trim();
         const note = document.getElementById('note').value.trim();
+        const progressHistory = currentTimeline.map(item => ({ status: item.status, date: item.date }));
 
         if (!company || !position) { alert('公司名称和职位不能为空'); return; }
 
@@ -702,14 +658,12 @@
         const record = {
           id: recordId,
           company, position, category, location, date, status,
-          jobDescription, note
+          jobDescription, note, progressHistory
         };
 
         // 保存新附件
         for (const item of currentFormAttachments) {
-          if (item.file) {
-            await saveAttachment(recordId, item.file);
-          }
+          if (item.file) await saveAttachment(recordId, item.file);
         }
 
         if (id) {
@@ -746,11 +700,12 @@
 
       async function exportToCSV() {
         await refreshAttachmentCounts();
-        const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '岗位描述', '备注', '附件数量'];
+        const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '岗位描述', '备注', '附件数量', '进度时间线'];
         const rows = applications.map(app => [
           app.company || '', app.position || '', app.category || '',
           formatLocationForExport(app.location || ''), app.date || '', app.status || '',
-          app.jobDescription || '', app.note || '', attachmentCountCache[app.id] || 0
+          app.jobDescription || '', app.note || '', attachmentCountCache[app.id] || 0,
+          formatTimeline(app.progressHistory)
         ]);
         let csvContent = '\uFEFF';
         csvContent += headers.map(csvEscape).join(',') + '\n';
@@ -765,26 +720,17 @@
       }
 
       async function exportFullBackup() {
-        // 导出完整 JSON，包含附件 base64
         if (!confirm('导出完整备份包含所有附件文件（可能较大），继续吗？')) return;
         const database = await openDB();
         const tx = database.transaction(DB_STORE, 'readonly');
         const store = tx.objectStore(DB_STORE);
-        const allAttachments = await new Promise((resolve, reject) => {
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = (e) => reject(e.target.error);
-        });
+        const allAttachments = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
 
         const backup = {
-          version: 2,
+          version: 3,
           applications: applications,
           attachments: await Promise.all(allAttachments.map(async att => ({
-            id: att.id,
-            recordId: att.recordId,
-            name: att.name,
-            type: att.type,
-            size: att.size,
+            id: att.id, recordId: att.recordId, name: att.name, type: att.type, size: att.size,
             dataBase64: await blobToBase64(new Blob([att.data], { type: att.type }))
           })))
         };
@@ -814,12 +760,19 @@
         for (let offset = 0; offset < byteChars.length; offset += 512) {
           const slice = byteChars.slice(offset, offset + 512);
           const byteNumbers = new Array(slice.length);
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-          }
+          for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
           byteArrays.push(new Uint8Array(byteNumbers));
         }
         return new Blob(byteArrays, { type });
+      }
+
+      function parseTimelineString(str) {
+        if (!str) return [];
+        // 格式: "状态:日期; 状态:日期"
+        return str.split(';').map(part => part.trim()).filter(Boolean).map(item => {
+          const [status, date] = item.split(':').map(s => s.trim());
+          return { status: status || '', date: date || '' };
+        });
       }
 
       async function handleImportFile(file) {
@@ -830,60 +783,40 @@
           reader.onload = async (e) => {
             try {
               const data = JSON.parse(e.target.result);
-              // 检测是否完整备份（包含 attachments）
               if (data.applications && data.attachments) {
                 if (!confirm('导入完整备份将覆盖所有记录和附件，确定继续吗？')) return;
-                // 清空所有附件
                 const database = await openDB();
                 const tx = database.transaction(DB_STORE, 'readwrite');
                 const store = tx.objectStore(DB_STORE);
                 store.clear();
-                await new Promise((resolve, reject) => {
-                  tx.oncomplete = resolve;
-                  tx.onerror = (e) => reject(e.target.error);
-                });
-                // 恢复附件
+                await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = (e) => reject(e.target.error); });
                 for (const att of data.attachments) {
                   const blob = base64ToBlob(att.dataBase64, att.type);
                   const arrayBuffer = await blob.arrayBuffer();
                   const tx2 = database.transaction(DB_STORE, 'readwrite');
                   const store2 = tx2.objectStore(DB_STORE);
-                  store2.put({
-                    id: att.id,
-                    recordId: att.recordId,
-                    name: att.name,
-                    type: att.type,
-                    data: arrayBuffer,
-                    size: att.size
-                  });
-                  await new Promise((resolve, reject) => {
-                    tx2.oncomplete = resolve;
-                    tx2.onerror = (e) => reject(e.target.error);
-                  });
+                  store2.put({ id: att.id, recordId: att.recordId, name: att.name, type: att.type, data: arrayBuffer, size: att.size });
+                  await new Promise((resolve, reject) => { tx2.oncomplete = resolve; tx2.onerror = (e) => reject(e.target.error); });
                 }
                 applications = data.applications.map(app => ({
                   ...app,
                   category: app.category || '',
                   location: app.location || '',
-                  jobDescription: app.jobDescription || ''
+                  jobDescription: app.jobDescription || '',
+                  progressHistory: app.progressHistory || []
                 }));
-                saveData();
-                renderTable();
-                alert('完整备份导入成功！');
+                saveData(); renderTable(); alert('完整备份导入成功！');
               } else if (Array.isArray(data)) {
                 if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？（附件不会自动迁移）')) return;
                 applications = data.map(item => ({
                   ...item,
                   category: item.category || '',
                   location: item.location || '',
-                  jobDescription: item.jobDescription || ''
+                  jobDescription: item.jobDescription || '',
+                  progressHistory: item.progressHistory || []
                 }));
-                saveData();
-                renderTable();
-                alert('导入成功！（附件需手动添加）');
-              } else {
-                alert('文件格式不正确');
-              }
+                saveData(); renderTable(); alert('导入成功！（附件需手动添加）');
+              } else { alert('文件格式不正确'); }
             } catch (error) { alert('JSON 文件格式不正确'); }
           };
           reader.readAsText(file);
@@ -901,7 +834,8 @@
               date: item.date || '',
               status: item.status || '待投递',
               jobDescription: item.jobDescription || '',
-              note: item.note || ''
+              note: item.note || '',
+              progressHistory: item.progressHistory ? parseTimelineString(item.progressHistory) : []
             }));
             saveData(); renderTable(); alert('导入成功！');
           };
@@ -916,7 +850,7 @@
             if (jsonData.length < 2) { alert('Excel 文件无数据'); return; }
             const headers = jsonData[0].map(h => String(h).trim());
             const records = [];
-            const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note' };
+            const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note', '进度时间线':'progressHistory' };
             for (let i = 1; i < jsonData.length; i++) {
               const row = jsonData[i];
               const obj = {};
@@ -938,7 +872,8 @@
               date: item.date || '',
               status: item.status || '待投递',
               jobDescription: item.jobDescription || '',
-              note: item.note || ''
+              note: item.note || '',
+              progressHistory: item.progressHistory ? parseTimelineString(item.progressHistory) : []
             }));
             saveData(); renderTable(); alert('导入成功！');
           };
@@ -963,7 +898,7 @@
           }
           values.push(current.trim());
           const obj = {};
-          const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note' };
+          const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note', '进度时间线':'progressHistory' };
           headers.forEach((header, idx) => {
             let val = values[idx] ? values[idx].replace(/^"|"$/g, '') : '';
             const key = map[header] || header;
@@ -986,9 +921,7 @@
       function bindEvents() {
         document.getElementById('addBtn').addEventListener('click', openAddModal);
         document.getElementById('cancelBtn').addEventListener('click', closeFormModal);
-        document.getElementById('formModal').addEventListener('click', (e) => {
-          if (e.target === document.getElementById('formModal')) closeFormModal();
-        });
+        document.getElementById('formModal').addEventListener('click', (e) => { if (e.target === document.getElementById('formModal')) closeFormModal(); });
         document.getElementById('appForm').addEventListener('submit', saveRecord);
         document.getElementById('exportBtn').addEventListener('click', exportToCSV);
         document.getElementById('exportJsonBtn').addEventListener('click', exportFullBackup);
@@ -1007,38 +940,28 @@
           updateBatchDeleteButton();
         });
 
-        // 表格事件委托
         document.getElementById('tableBody').addEventListener('click', async (e) => {
-          // 附件链接点击 -> 弹出附件列表（简单模态或内联处理，这里简单弹出下载）
           const attachLink = e.target.closest('.attachment-link');
           if (attachLink) {
             const recordId = attachLink.dataset.recordId;
             const attachments = await getAttachmentsByRecord(recordId);
             if (attachments.length === 0) return;
-            // 简单起见：直接依次下载？或者创建一个选择菜单。这里我们列出文件名并允许点击下载
-            const fileList = attachments.map(a => a.name).join('\n');
             const choice = prompt('附件列表（输入序号下载，或取消）：\n' + attachments.map((a, i) => `${i+1}. ${a.name}`).join('\n'));
             if (choice !== null) {
               const idx = parseInt(choice) - 1;
-              if (idx >= 0 && idx < attachments.length) {
-                downloadAttachment(recordId, attachments[idx].name);
-              }
+              if (idx >= 0 && idx < attachments.length) downloadAttachment(recordId, attachments[idx].name);
             }
             return;
           }
-
-          // 展开/折叠
           const expandableTd = e.target.closest('.expandable-td');
           if (expandableTd) {
             expandableTd.classList.toggle('expanded');
             return;
           }
-          // 复选框
           if (e.target.classList.contains('row-checkbox')) {
             updateBatchDeleteButton();
             return;
           }
-          // 编辑/删除按钮
           const btn = e.target.closest('button');
           if (!btn) return;
           const id = btn.dataset.id;
@@ -1046,7 +969,6 @@
           else if (btn.classList.contains('delete')) deleteRecord(id);
         });
 
-        // 筛选
         document.getElementById('filterCompany').addEventListener('input', renderTable);
         document.getElementById('filterLocation').addEventListener('input', renderTable);
         document.getElementById('filterCategory').addEventListener('change', renderTable);
