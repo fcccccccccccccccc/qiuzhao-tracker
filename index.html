@@ -1,188 +1,404 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>我的秋招记录</title>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: #333; padding: 20px; max-width: 1300px; margin: 0 auto; }
-    h1 { text-align: center; margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-bottom: 16px; }
-    button, .btn { background: white; border: 1px solid #d0d5dd; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-    button:hover, .btn:hover { background: #f0f2f5; border-color: #b0b7c3; }
-    .btn-primary { background: #1e3c72; border-color: #1e3c72; color: white; }
-    .btn-primary:hover { background: #16325c; }
-    .btn-danger { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
-    .btn-danger:hover { background: #fecaca; }
-    .filter-section { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-bottom: 16px; background: white; padding: 14px 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .filter-item { display: flex; align-items: center; gap: 6px; font-size: 14px; }
-    .filter-item label { font-weight: 500; color: #374151; white-space: nowrap; }
-    .filter-item input, .filter-item select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: white; min-width: 150px; }
-    .filter-item input:focus, .filter-item select:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
-    .reset-btn { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
-    .reset-btn:hover { background: #fecaca; }
-    .table-wrapper { overflow-x: auto; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 10px; }
-    table { width: 100%; border-collapse: collapse; min-width: 1300px; white-space: nowrap; }
-    th { text-align: left; padding: 14px 8px; font-weight: 600; font-size: 13px; color: #5f6b7a; background: #f9fafb; border-bottom: 1px solid #e9ebf0; }
-    td { padding: 12px 8px; border-bottom: 1px solid #f0f2f5; font-size: 14px; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    .checkbox-cell { width: 30px; text-align: center; }
-    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 500; background: #eef2ff; color: #4338ca; }
-    .status-待投递 { background: #f3f4f6; color: #6b7280; }
-    .status-已投递 { background: #e0f2fe; color: #0369a1; }
-    .status-测评 { background: #fef3c7; color: #b45309; }
-    .status-笔试 { background: #ede9fe; color: #6d28d9; }
-    .status-一面, .status-二面, .status-HR面 { background: #dbeafe; color: #1e40af; }
-    .status-终面 { background: #d1fae5; color: #065f46; }
-    .status-Offer { background: #c6f6d5; color: #14532d; font-weight: 600; }
-    .status-拒信 { background: #fee2e2; color: #991b1b; }
-    .status-已签约 { background: #bae6fd; color: #0c4a6e; font-weight: 600; }
-    .action-btn { background: none; border: none; padding: 4px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #4b5563; margin-right: 4px; }
-    .action-btn:hover { background: #f3f4f6; }
-    .action-btn.delete { color: #b91c1c; }
-    .empty-state { text-align: center; padding: 40px; color: #9ca3af; font-size: 15px; }
-    .category-badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 12px; background: #f3f4f6; color: #4b5563; font-weight: 500; }
-    .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
-    .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
-    .attachment-link { color: #1e3c72; cursor: pointer; text-decoration: underline; }
-    .attachment-list { list-style: none; margin-top: 8px; padding-left: 0; }
-    .attachment-list li { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
-    .attachment-list .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
-    .attachment-actions button { padding: 2px 8px; font-size: 12px; margin-left: 4px; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000; }
-    .modal.active { display: flex; }
-    .modal-content { background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 620px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
-    .modal-content h2 { margin-bottom: 20px; font-weight: 600; color: #1e3c72; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; color: #374151; }
-    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.15); }
-    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-    .text-muted { color: #6b7280; font-size: 13px; margin-top: 5px; }
-    .progress-line-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .progress-line-item select, .progress-line-item input { min-width: 120px; }
-    .progress-line-item button { padding: 4px 10px; }
-    .timeline-date { font-size: 12px; color: #6b7280; margin-left: 5px; }
-    .timeline-tooltip { cursor: help; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秋招管理系统 - 总览</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js">
+    </script>
+    <style>
+        :root {
+            --primary: #6d28d9;
+            --primary-dark: #5b21b6;
+            --primary-light: #8b5cf6;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f6fa;
+            overflow-x: hidden;
+        }
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-left: 3px solid #fff;
+        }
+        .funnel-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .funnel-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .funnel-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c4b5fd;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        .stat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+        .pulse-dot {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .sidebar-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            padding: 1px 7px;
+            border-radius: 50px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        @media (max-width: 1024px) {
+            .funnel-container {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .funnel-arrow {
+                display: none;
+            }
+            .funnel-card {
+                min-width: 45%;
+            }
+        }
+        @media (max-width: 640px) {
+            .funnel-card {
+                min-width: 100%;
+            }
+            .sidebar {
+                width: 60px !important;
+            }
+            .sidebar-text {
+                display: none;
+            }
+            .sidebar-badge {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>🍂 我的秋招记录</h1>
-  
-  <div class="toolbar">
-    <button class="btn-primary" id="addBtn">＋ 添加申请</button>
-    <button class="btn-danger" id="batchDeleteBtn" style="display:none;">🗑 批量删除</button>
-    <button id="exportBtn">⬇ 导出 Excel</button>
-    <button id="exportJsonBtn">📦 导出完整备份</button>
-    <button id="importBtn">⬆ 导入数据</button>
-  </div>
+    <div id="app">
+        <!-- 顶部导航栏 -->
+        <header class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4"
+        style="background: linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6);">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white text-xl font-bold shadow-inner">
+                🍂
+            </div>
+            <span class="text-white font-semibold text-lg tracking-wide">秋招管理系统</span>
+        </div>
+        <div class="ml-auto flex items-center gap-3">
+            <span class="text-white/80 text-sm hidden sm:block">{{ currentDate }}</span>
+            <div class="flex items-center gap-2 bg-white/20 rounded-full pl-1 pr-3 py-1">
+                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-sm font-semibold text-purple-700">
+                    {{ userInitial }}
+                </div>
+                <span class="text-white text-sm font-medium">求职者</span>
+            </div>
+        </div>
+    </header>
 
-  <div class="filter-section">
-    <div class="filter-item">
-      <label>🔍 公司</label>
-      <input type="text" id="filterCompany" placeholder="输入公司名筛选...">
+    <!-- 侧边栏 -->
+    <aside class="fixed left-0 top-14 bottom-0 z-40 sidebar overflow-y-auto transition-all duration-200"
+    style="background: #5b21b6; width: 200px;">
+    <nav class="py-4 px-2 space-y-1">
+        <div v-for="item in sidebarItems" :key="item.name"
+        class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer"
+        :class="{ 'active': item.active }" @click="switchSidebar(item)">
+        <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
+        <span class="sidebar-text text-white text-sm font-medium">{{ item.name }}</span>
+        <span v-if="item.badge > 0" class="sidebar-badge ml-auto">{{ item.badge }}</span>
     </div>
-    <div class="filter-item">
-      <label>📍 地点</label>
-      <input type="text" id="filterLocation" placeholder="输入城市筛选...">
-    </div>
-    <div class="filter-item">
-      <label>📂 岗位类别</label>
-      <select id="filterCategory">
-        <option value="">全部</option>
-        <option value="技术">技术</option>
-        <option value="产品">产品</option>
-        <option value="设计">设计</option>
-        <option value="运营">运营</option>
-        <option value="市场">市场</option>
-        <option value="职能">职能</option>
-        <option value="其他">其他</option>
-      </select>
-    </div>
-    <div class="filter-item">
-      <label>📌 当前进度</label>
-      <select id="filterStatus">
-        <option value="">全部</option>
-        <option value="待投递">待投递</option>
-        <option value="已投递">已投递</option>
-        <option value="测评">测评</option>
-        <option value="笔试">笔试</option>
-        <option value="一面">一面</option>
-        <option value="二面">二面</option>
-        <option value="HR面">HR面</option>
-        <option value="终面">终面</option>
-        <option value="Offer">Offer</option>
-        <option value="拒信">拒信</option>
-        <option value="已签约">已签约</option>
-      </select>
-    </div>
-    <button class="reset-btn" id="resetFilterBtn">🔄 重置筛选</button>
-  </div>
+</nav>
+</aside>
 
-  <div class="table-wrapper">
-    <table id="appTable">
-      <thead>
-        <tr>
-          <th class="checkbox-cell"><input type="checkbox" id="selectAllCheckbox" title="全选/取消全选"></th>
-          <th>公司</th>
-          <th>职位</th>
-          <th>岗位类别</th>
-          <th>地点</th>
-          <th>投递日期</th>
-          <th>当前进度</th>
-          <th>岗位描述</th>
-          <th>备注</th>
-          <th>附件</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr><td colspan="11" class="empty-state">还没有记录，点击上方按钮添加第一条秋招信息吧</td></tr>
-      </tbody>
-    </table>
-  </div>
+<!-- 主内容区 -->
+<main class="pt-14 pl-0" :class="{ 'pl-0': isMobile, 'pl-0': true }" style="margin-left: 200px;">
+<div class="p-4 md:p-6 max-w-7xl mx-auto">
+    <!-- 页面标题 -->
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
+        <span class="text-sm text-gray-500">{{ currentDate }} 周{{ weekdayCN }}</span>
+    </div>
 
-  <!-- 添加/编辑模态框 -->
-  <div class="modal" id="formModal">
+    <!-- 预警提示条 -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="text-amber-500 text-lg">⚠️</span>
+            <span class="font-semibold text-amber-800">近期截止/面试提醒</span>
+        </div>
+        <div class="space-y-1.5 pl-6">
+            <template v-if="upcomingAlerts.length > 0">
+                <div v-for="(alert, i) in upcomingAlerts" :key="i" class="flex items-center gap-2">
+                    <span class="stat-dot" :class="alert.urgent ? 'bg-red-500 pulse-dot' : 'bg-orange-500'"></span>
+                    <span class="text-sm text-amber-700">{{ alert.text }}</span>
+                </div>
+            </template>
+            <template v-else>
+                <div class="text-sm text-amber-600">暂无即将到来的截止/面试安排</div>
+            </template>
+        </div>
+    </div>
+
+    <!-- 求职漏斗 -->
+    <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">📈 求职漏斗</h2>
+        <div class="funnel-container flex items-center gap-2 md:gap-3 flex-wrap">
+            <!-- 已投递 -->
+            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-blue-200 p-3 md:p-4 min-w-[120px] text-center">
+                <div class="text-2xl mb-1">📤</div>
+                <div class="text-3xl font-bold text-blue-600">{{ funnelStats.applied }}</div>
+                <div class="text-sm text-gray-600 font-medium">已投递</div>
+                <div class="text-xs text-gray-400 mt-1">投递率 100%</div>
+                <div class="h-1 bg-blue-500 rounded-full mt-2"></div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <!-- 笔试/测评 -->
+            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-purple-200 p-3 md:p-4 min-w-[120px] text-center">
+                <div class="text-2xl mb-1">✍️</div>
+                <div class="text-3xl font-bold text-purple-600">{{ funnelStats.assessment }}</div>
+                <div class="text-sm text-gray-600 font-medium">笔试/测评</div>
+                <div class="text-xs text-gray-400 mt-1">笔试率 {{ funnelStats.assessmentRate }}%</div>
+                <div class="h-1 bg-purple-500 rounded-full mt-2"></div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <!-- 面试中 -->
+            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-yellow-200 p-3 md:p-4 min-w-[120px] text-center">
+                <div class="text-2xl mb-1">🎤</div>
+                <div class="text-3xl font-bold text-yellow-600">{{ funnelStats.interviewing }}</div>
+                <div class="text-sm text-gray-600 font-medium">面试中</div>
+                <div class="text-xs text-gray-400 mt-1">面试率 {{ funnelStats.interviewRate }}%</div>
+                <div class="h-1 bg-yellow-500 rounded-full mt-2"></div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <!-- Offer -->
+            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-green-200 p-3 md:p-4 min-w-[120px] text-center">
+                <div class="text-2xl mb-1">🏆</div>
+                <div class="text-3xl font-bold text-green-600">{{ funnelStats.offer }}</div>
+                <div class="text-sm text-gray-600 font-medium">已拿Offer</div>
+                <div class="text-xs text-gray-400 mt-1">Offer率 {{ funnelStats.offerRate }}%</div>
+                <div class="h-1 bg-green-500 rounded-full mt-2"></div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <!-- 已挂/拒绝 -->
+            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-red-200 p-3 md:p-4 min-w-[120px] text-center">
+                <div class="text-2xl mb-1">💔</div>
+                <div class="text-3xl font-bold text-red-500">{{ funnelStats.rejected }}</div>
+                <div class="text-sm text-gray-600 font-medium">已挂/拒绝</div>
+                <div class="text-xs text-gray-400 mt-1">淘汰率 {{ funnelStats.rejectRate }}%</div>
+                <div class="h-1 bg-red-500 rounded-full mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列表展示区（左右两列） -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+        <!-- 近期面试安排 -->
+        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
+            <template v-if="recentInterviews.length > 0">
+                <div v-for="(item, i) in recentInterviews" :key="i"
+                class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+                <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.timeLabel }}</span>
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                    <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                </div>
+                <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0"
+                @click="editRecord(item.id)">✏️</button>
+            </div>
+        </template>
+        <template v-else>
+            <div class="text-center text-gray-400 py-6">暂无面试安排</div>
+        </template>
+    </div>
+
+    <!-- 最近投递 -->
+    <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">📋 最近投递（最新10条）</h2>
+        <template v-if="recentApplications.length > 0">
+            <div v-for="(item, i) in recentApplications" :key="i"
+            class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+            <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+            </div>
+            <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+            <span class="text-xs text-gray-400 w-20 text-right flex-shrink-0">{{ item.date || '-' }}</span>
+        </div>
+    </template>
+    <template v-else>
+        <div class="text-center text-gray-400 py-6">暂无投递记录</div>
+    </template>
+</div>
+</div>
+
+<!-- 底部功能区 -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+    <!-- 重点关注 -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">⭐ 重点关注</h2>
+            <template v-if="focusRecord">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-gray-800 text-lg">{{ focusRecord.company }}</span>
+                        <span class="text-xl cursor-pointer hover:scale-110 transition-transform"
+                        @click="toggleFocus(focusRecord.id)">{{ isFocused(focusRecord.id) ? '⭐' : '☆' }}</span>
+                    </div>
+                    <div class="text-sm text-gray-600">{{ focusRecord.position }}</div>
+                    <div class="text-xs text-gray-400 flex items-center gap-1">
+                        <span>📍</span>{{ focusRecord.location || '未设置' }}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="tag" :class="getStatusClass(focusRecord.status)">{{ focusRecord.status }}</span>
+                        <span class="text-xs text-gray-400">{{ focusRecord.date || '未投递' }}</span>
+                    </div>
+                    <button class="w-full py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium"
+                    @click="editRecord(focusRecord.id)">编辑</button>
+                </div>
+            </template>
+            <template v-else>
+                <div class="text-center text-gray-400 py-6">暂无重点关注</div>
+            </template>
+        </div>
+    </div>
+
+    <!-- 意向岗位 -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">🎯 意向岗位</h2>
+            <template v-if="intentPositions.length > 0">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div v-for="(item, i) in intentPositions" :key="i"
+                    class="border border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-colors cursor-pointer"
+                    @click="editRecord(item.id)">
+                    <div class="font-medium text-gray-800 text-sm truncate">{{ item.company }}</div>
+                    <div class="text-xs text-gray-500 truncate mt-0.5">{{ item.position }}</div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="tag text-xs"
+                        :class="item.priority === '高优先' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'">
+                        {{ item.priority || '中优先' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template v-else>
+        <div class="text-center text-gray-400 py-6">暂无意向岗位记录</div>
+    </template>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 编辑模态框 -->
+<div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
     <div class="modal-content">
-      <h2 id="modalTitle">添加申请</h2>
-      <form id="appForm">
-        <input type="hidden" id="recordId">
-        <div class="form-group">
-          <label>公司名称 *</label>
-          <input type="text" id="company" required placeholder="例如：字节跳动">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">✏️ 编辑投递记录</h2>
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs font-medium text-gray-600">公司名称</label>
+                <input v-model="editForm.company" type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                placeholder="例如：字节跳动">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-600">职位</label>
+                <input v-model="editForm.position" type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                placeholder="例如：后端开发工程师">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-600">岗位类别</label>
+                <select v-model="editForm.category"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                <option value="">请选择</option>
+                <option value="技术">技术</option>
+                <option value="产品">产品</option>
+                <option value="设计">设计</option>
+                <option value="运营">运营</option>
+                <option value="市场">市场</option>
+                <option value="职能">职能</option>
+                <option value="其他">其他</option>
+            </select>
         </div>
-        <div class="form-group">
-          <label>职位 *</label>
-          <input type="text" id="position" required placeholder="例如：后端开发工程师">
+        <div>
+            <label class="text-xs font-medium text-gray-600">工作地点</label>
+            <input v-model="editForm.location" type="text"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            placeholder="例如：北京">
         </div>
-        <div class="form-group">
-          <label>岗位类别</label>
-          <select id="category">
-            <option value="">请选择</option>
-            <option value="技术">技术</option>
-            <option value="产品">产品</option>
-            <option value="设计">设计</option>
-            <option value="运营">运营</option>
-            <option value="市场">市场</option>
-            <option value="职能">职能</option>
-            <option value="其他">其他</option>
-          </select>
+        <div>
+            <label class="text-xs font-medium text-gray-600">投递日期</label>
+            <input v-model="editForm.date" type="date"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
         </div>
-        <div class="form-group">
-          <label>工作地点</label>
-          <input type="text" id="location" placeholder="例如：北京（多个可用 / 分隔）">
-        </div>
-        <div class="form-group">
-          <label>投递日期</label>
-          <input type="date" id="applyDate">
-          <p class="text-muted">如状态为“待投递”，可留空。</p>
-        </div>
-        <div class="form-group">
-          <label>当前进度</label>
-          <select id="status">
+        <div>
+            <label class="text-xs font-medium text-gray-600">当前进度</label>
+            <select v-model="editForm.status"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
             <option value="待投递">待投递</option>
             <option value="已投递">已投递</option>
             <option value="测评">测评</option>
@@ -194,796 +410,327 @@
             <option value="Offer">Offer</option>
             <option value="拒信">拒信</option>
             <option value="已签约">已签约</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>📅 进度时间线</label>
-          <div id="timelineContainer">
-            <div id="timelineList"></div>
-            <button type="button" class="btn" id="addTimelineBtn">＋ 添加进度节点</button>
-          </div>
-          <p class="text-muted">记录测评、面试等关键节点的完成日期。</p>
-        </div>
-        <div class="form-group">
-          <label>岗位描述</label>
-          <textarea id="jobDescription" rows="3" placeholder="例如：负责数据平台建设..."></textarea>
-        </div>
-        <div class="form-group">
-          <label>备注</label>
-          <textarea id="note" rows="2" placeholder="例如：笔试时间、HR联系方式..."></textarea>
-        </div>
-        <div class="form-group">
-          <label>📎 附件（简历等）</label>
-          <div id="attachmentListContainer">
-            <ul class="attachment-list" id="attachmentList"></ul>
-          </div>
-          <button type="button" class="btn" id="addAttachmentBtn">＋ 添加附件</button>
-          <input type="file" id="attachmentInput" multiple>
-        </div>
-        <div class="form-actions">
-          <button type="button" id="cancelBtn">取消</button>
-          <button type="submit" class="btn-primary">保存</button>
-        </div>
-      </form>
+        </select>
     </div>
-  </div>
+    <div>
+        <label class="text-xs font-medium text-gray-600">备注</label>
+        <textarea v-model="editForm.note" rows="2"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+        placeholder="例如：笔试时间、HR联系方式..."></textarea>
+    </div>
+</div>
+<div class="flex gap-2 mt-5">
+    <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+    @click="closeEditModal">取消</button>
+    <button class="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+    @click="saveEdit">保存</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
 
-  <input type="file" id="importFile" accept=".json,.csv,.xlsx,.xls" style="display: none;">
+<script>
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
 
-  <script>
-    (function() {
-      // ---------- IndexedDB 附件存储 ----------
-      const DB_NAME = 'QiuzhaoAttachments';
-      const DB_STORE = 'attachments';
-      let db = null;
+    createApp({
+        setup() {
+            // ---------- 数据 ----------
+            const applications = ref([]);
+            const focusIds = reactive(new Set());
+            const showEditModal = ref(false);
+            const editForm = reactive({
+                id: '',
+                company: '',
+                position: '',
+                category: '',
+                location: '',
+                date: '',
+                status: '待投递',
+                note: ''
+            });
 
-      function openDB() {
-        return new Promise((resolve, reject) => {
-          if (db) return resolve(db);
-          const request = indexedDB.open(DB_NAME, 1);
-          request.onupgradeneeded = (e) => {
-            const database = e.target.result;
-            if (!database.objectStoreNames.contains(DB_STORE)) {
-              database.createObjectStore(DB_STORE, { keyPath: 'id' });
+            const currentDate = computed(() => {
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            });
+
+            const weekdayCN = computed(() => {
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                return weekdays[new Date().getDay()];
+            });
+
+            const userInitial = computed(() => '求');
+
+            const isMobile = computed(() => window.innerWidth <= 640);
+
+            const sidebarItems = ref([
+                { name: '总览', icon: '📊', badge: 0, active: true },
+                { name: '投递记录', icon: '📤', badge: 0, active: false },
+                { name: '简历管理', icon: '📄', badge: 0, active: false },
+                { name: '复盘笔记', icon: '📝', badge: 0, active: false },
+                { name: '待投清单', icon: '📌', badge: 0, active: false },
+                { name: '企业库', icon: '🏢', badge: 0, active: false },
+                { name: 'AI助手', icon: '🤖', badge: 0, active: false },
+            ]);
+
+            // ---------- 漏斗统计 ----------
+            const funnelStats = computed(() => {
+                const total = applications.value.filter(a => a.status !== '待投递').length;
+                const assessment = applications.value.filter(a => ['测评', '笔试'].includes(a.status)).length;
+                const interviewing = applications.value.filter(a => ['一面', '二面', 'HR面', '终面'].includes(a.status))
+                    .length;
+                const offer = applications.value.filter(a => a.status === 'Offer').length;
+                const rejected = applications.value.filter(a => a.status === '拒信').length;
+                const applied = total;
+
+                const safeRate = (val) => total > 0 ? Math.round(val / total * 100) : 0;
+
+                return {
+                    applied,
+                    assessment,
+                    interviewing,
+                    offer,
+                    rejected,
+                    assessmentRate: safeRate(assessment),
+                    interviewRate: safeRate(interviewing),
+                    offerRate: safeRate(offer),
+                    rejectRate: safeRate(rejected),
+                };
+            });
+
+            // ---------- 近期面试 ----------
+            const recentInterviews = computed(() => {
+                const interviewStatuses = ['一面', '二面', 'HR面', '终面', 'AI面'];
+                const results = [];
+                applications.value.forEach(app => {
+                    if (interviewStatuses.includes(app.status)) {
+                        results.push({
+                            id: app.id,
+                            company: app.company,
+                            position: app.position,
+                            status: app.status,
+                            timeLabel: app.date || '待定'
+                        });
+                    }
+                    // 从 progressHistory 中提取
+                    if (app.progressHistory && app.progressHistory.length > 0) {
+                        app.progressHistory.forEach(h => {
+                            if (interviewStatuses.includes(h.status) && h.date) {
+                                results.push({
+                                    id: app.id,
+                                    company: app.company,
+                                    position: app.position,
+                                    status: h.status,
+                                    timeLabel: h.date
+                                });
+                            }
+                        });
+                    }
+                });
+                return results.slice(0, 6);
+            });
+
+            // ---------- 最近投递 ----------
+            const recentApplications = computed(() => {
+                return applications.value
+                    .filter(a => a.status !== '待投递')
+                    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+                    .slice(0, 10)
+                    .map(a => ({
+                        id: a.id,
+                        company: a.company,
+                        position: a.position,
+                        status: a.status,
+                        date: a.date || '-'
+                    }));
+            });
+
+            // ---------- 预警 ----------
+            const upcomingAlerts = computed(() => {
+                const alerts = [];
+                applications.value.forEach(app => {
+                    if (app.progressHistory && app.progressHistory.length > 0) {
+                        app.progressHistory.forEach(h => {
+                            if (h.date && ['一面', '二面', 'HR面', '终面', '测评', '笔试'].includes(h
+                                .status)) {
+                                const d = new Date(h.date);
+                                const now = new Date();
+                                const diff = d - now;
+                                if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
+                                    alerts.push({
+                                        text: `${h.status} ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${app.company} ${app.position}`,
+                                        urgent: diff < 24 * 60 * 60 * 1000,
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+                return alerts.slice(0, 2);
+            });
+
+            // ---------- 重点关注 ----------
+            const focusRecord = computed(() => {
+                if (applications.value.length === 0) return null;
+                const focused = applications.value.find(a => focusIds.has(a.id));
+                if (focused) return focused;
+                // 默认显示第一条非待投递的记录
+                return applications.value.find(a => a.status !== '待投递') || applications.value[0] || null;
+            });
+
+            function isFocused(id) { return focusIds.has(id); }
+
+            function toggleFocus(id) {
+                if (focusIds.has(id)) focusIds.delete(id);
+                else focusIds.add(id);
             }
-          };
-          request.onsuccess = (e) => {
-            db = e.target.result;
-            resolve(db);
-          };
-          request.onerror = (e) => reject(e.target.error);
-        });
-      }
 
-      function attachmentId(recordId, fileName) { return `${recordId}_${fileName}`; }
+            // ---------- 意向岗位 ----------
+            const intentPositions = computed(() => {
+                return applications.value
+                    .filter(a => ['待投递', '已投递'].includes(a.status))
+                    .slice(0, 8)
+                    .map((a, i) => ({
+                        id: a.id,
+                        company: a.company,
+                        position: a.position,
+                        priority: i % 3 === 0 ? '高优先' : '中优先',
+                    }));
+            });
 
-      async function saveAttachment(recordId, file) {
-        const database = await openDB();
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const tx = database.transaction(DB_STORE, 'readwrite');
-            const store = tx.objectStore(DB_STORE);
-            const record = { id: attachmentId(recordId, file.name), recordId: recordId, name: file.name, type: file.type, data: reader.result, size: file.size };
-            store.put(record);
-            tx.oncomplete = () => resolve();
-            tx.onerror = (e) => reject(e.target.error);
-          };
-          reader.readAsArrayBuffer(file);
-        });
-      }
+            // ---------- 状态标签颜色 ----------
+            function getStatusClass(status) {
+                const map = {
+                    '待投递': 'bg-gray-100 text-gray-600',
+                    '已投递': 'bg-blue-100 text-blue-700',
+                    '测评': 'bg-blue-100 text-blue-700',
+                    '笔试': 'bg-purple-100 text-purple-700',
+                    'AI面': 'bg-green-100 text-green-700',
+                    '一面': 'bg-yellow-100 text-yellow-700',
+                    '二面': 'bg-orange-100 text-orange-700',
+                    'HR面': 'bg-pink-100 text-pink-700',
+                    '终面': 'bg-teal-100 text-teal-700',
+                    'Offer': 'bg-green-100 text-green-700',
+                    '拒信': 'bg-red-100 text-red-700',
+                    '已签约': 'bg-indigo-100 text-indigo-700',
+                };
+                return map[status] || 'bg-gray-100 text-gray-600';
+            }
 
-      async function deleteAttachment(recordId, fileName) {
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        store.delete(attachmentId(recordId, fileName));
-        return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
-      }
-
-      async function getAttachmentsByRecord(recordId) {
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readonly');
-        const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
-        return all.filter(a => a.recordId === recordId).map(({ name, type, size }) => ({ name, type, size }));
-      }
-
-      async function downloadAttachment(recordId, fileName) {
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readonly');
-        const store = tx.objectStore(DB_STORE);
-        const request = store.get(attachmentId(recordId, fileName));
-        request.onsuccess = () => {
-          const record = request.result;
-          if (record) {
-            const blob = new Blob([record.data], { type: record.type });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = record.name;
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        };
-        request.onerror = (e) => alert('下载失败：' + e.target.error);
-      }
-
-      async function deleteAttachmentsByRecord(recordId) {
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
-        const toDelete = all.filter(a => a.recordId === recordId);
-        toDelete.forEach(a => store.delete(a.id));
-        return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
-      }
-
-      // ---------- 主应用 ----------
-      const STORAGE_KEY = 'qiuzhao_applications_v2';
-      let applications = [];
-      let attachmentCountCache = {};
-
-      function loadData() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          try { applications = JSON.parse(stored); } catch (e) { applications = []; }
-        } else {
-          const oldData = localStorage.getItem('qiuzhao_applications');
-          if (oldData) {
-            try { applications = JSON.parse(oldData).map(item => ({...item, category: item.category || ''})); saveData(); } catch (e) { applications = []; }
-          } else { applications = []; }
-        }
-        applications = applications.map(app => ({
-          ...app,
-          category: app.category || '',
-          status: app.status || '待投递',
-          location: app.location || '',
-          jobDescription: app.jobDescription || '',
-          progressHistory: app.progressHistory || []   // 新增字段
-        }));
-      }
-
-      function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(applications)); }
-      function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
-
-      function getFilters() {
-        return {
-          company: document.getElementById('filterCompany').value.trim().toLowerCase(),
-          location: document.getElementById('filterLocation').value.trim().toLowerCase(),
-          category: document.getElementById('filterCategory').value,
-          status: document.getElementById('filterStatus').value
-        };
-      }
-
-      function getFilteredApplications() {
-        const { company, location, category, status } = getFilters();
-        return applications.filter(app => {
-          if (company && !app.company.toLowerCase().includes(company)) return false;
-          if (location && !(app.location || '').toLowerCase().includes(location)) return false;
-          if (category && app.category !== category) return false;
-          if (status && app.status !== status) return false;
-          return true;
-        });
-      }
-
-      async function refreshAttachmentCounts() {
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readonly');
-        const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
-        const counts = {};
-        all.forEach(a => { counts[a.recordId] = (counts[a.recordId] || 0) + 1; });
-        attachmentCountCache = counts;
-      }
-
-      function getLatestDateForStatus(history, status) {
-        if (!history || history.length === 0) return '';
-        const filtered = history.filter(h => h.status === status);
-        if (filtered.length === 0) return '';
-        const dates = filtered.map(h => h.date).filter(d => d);
-        if (dates.length === 0) return '';
-        return dates.sort().reverse()[0]; // 最近日期
-      }
-
-      function formatTimeline(history) {
-        if (!history || history.length === 0) return '';
-        return history.map(h => `${h.status}${h.date ? ':' + h.date : ''}`).join('; ');
-      }
-
-      async function renderTable() {
-        await refreshAttachmentCounts();
-        const filtered = getFilteredApplications();
-        const tbody = document.getElementById('tableBody');
-        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-        selectAllCheckbox.checked = false;
-
-        if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="11" class="empty-state">没有匹配的记录</td></tr>`;
-          updateBatchDeleteButton();
-          return;
-        }
-
-        let html = '';
-        filtered.forEach(app => {
-          const statusClass = app.status ? `status-${app.status}` : '';
-          const categoryText = app.category || '未分类';
-          const descText = app.jobDescription || '-';
-          const remarkText = app.note || '-';
-          const attachCount = attachmentCountCache[app.id] || 0;
-          const latestDate = getLatestDateForStatus(app.progressHistory, app.status);
-          const timelineStr = formatTimeline(app.progressHistory);
-          const timelineTitle = timelineStr ? `进度时间线：\n${timelineStr}` : '';
-          html += `
-            <tr data-id="${app.id}">
-              <td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${app.id}"></td>
-              <td><strong>${escapeHtml(app.company)}</strong></td>
-              <td>${escapeHtml(app.position)}</td>
-              <td><span class="category-badge">${escapeHtml(categoryText)}</span></td>
-              <td>${escapeHtml(app.location || '-')}</td>
-              <td>${escapeHtml(app.date || '-')}</td>
-              <td>
-                <span class="status-badge ${statusClass}">${escapeHtml(app.status || '待投递')}</span>
-                ${latestDate ? `<span class="timeline-date timeline-tooltip" title="${escapeHtml(timelineTitle)}">📅 ${escapeHtml(latestDate)}</span>` : ''}
-              </td>
-              <td class="expandable-td"><span class="expandable-cell" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span></td>
-              <td class="expandable-td"><span class="expandable-cell" title="${escapeHtml(remarkText)}">${escapeHtml(remarkText)}</span></td>
-              <td>${attachCount > 0 ? `<span class="attachment-link" data-record-id="${app.id}">📎 ${attachCount}个文件</span>` : '<span style="color:#9ca3af;">无</span>'}</td>
-              <td>
-                <button class="action-btn edit" data-id="${app.id}">✏️编辑</button>
-                <button class="action-btn delete" data-id="${app.id}">🗑删除</button>
-              </td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
-        updateBatchDeleteButton();
-      }
-
-      function updateBatchDeleteButton() {
-        const checkedCount = document.querySelectorAll('#tableBody .row-checkbox:checked').length;
-        document.getElementById('batchDeleteBtn').style.display = checkedCount > 0 ? 'inline-flex' : 'none';
-      }
-
-      function escapeHtml(text) {
-        return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-      }
-
-      function getSelectedIds() {
-        const checkboxes = document.querySelectorAll('#tableBody .row-checkbox:checked');
-        return Array.from(checkboxes).map(cb => cb.dataset.id);
-      }
-
-      async function batchDelete() {
-        const selectedIds = getSelectedIds();
-        if (selectedIds.length === 0) { alert('请至少选择一条记录'); return; }
-        if (!confirm(`确定要删除选中的 ${selectedIds.length} 条记录吗？此操作不可恢复。`)) return;
-        for (const id of selectedIds) { await deleteAttachmentsByRecord(id); }
-        applications = applications.filter(app => !selectedIds.includes(app.id));
-        saveData();
-        renderTable();
-      }
-
-      async function deleteRecord(id) {
-        if (!confirm('确定要删除这条记录吗？')) return;
-        await deleteAttachmentsByRecord(id);
-        applications = applications.filter(a => a.id !== id);
-        saveData();
-        renderTable();
-      }
-
-      // ---------- 表单中的进度时间线管理 ----------
-      let currentTimeline = []; // [{status, date}]
-
-      function renderTimelineList() {
-        const listEl = document.getElementById('timelineList');
-        listEl.innerHTML = '';
-        currentTimeline.forEach((item, index) => {
-          const li = document.createElement('div');
-          li.className = 'progress-line-item';
-          li.innerHTML = `
-            <select class="timeline-status" data-index="${index}">
-              ${['待投递','已投递','测评','笔试','一面','二面','HR面','终面','Offer','拒信','已签约'].map(s => `<option value="${s}" ${s === item.status ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-            <input type="date" class="timeline-date-input" data-index="${index}" value="${item.date || ''}">
-            <button type="button" class="btn delete-timeline" data-index="${index}">✕</button>
-          `;
-          listEl.appendChild(li);
-        });
-
-        // 绑定事件
-        listEl.querySelectorAll('.timeline-status').forEach(sel => {
-          sel.addEventListener('change', (e) => {
-            const idx = parseInt(e.target.dataset.index);
-            currentTimeline[idx].status = e.target.value;
-          });
-        });
-        listEl.querySelectorAll('.timeline-date-input').forEach(inp => {
-          inp.addEventListener('change', (e) => {
-            const idx = parseInt(e.target.dataset.index);
-            currentTimeline[idx].date = e.target.value;
-          });
-        });
-        listEl.querySelectorAll('.delete-timeline').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const idx = parseInt(e.target.dataset.index);
-            currentTimeline.splice(idx, 1);
-            renderTimelineList();
-          });
-        });
-      }
-
-      function addTimelineItem(status = '', date = '') {
-        currentTimeline.push({ status: status || '测评', date: date || '' });
-        renderTimelineList();
-      }
-
-      function resetTimelineUI() {
-        currentTimeline = [];
-        document.getElementById('timelineList').innerHTML = '';
-      }
-
-      function loadTimelineForEdit(history) {
-        currentTimeline = history ? JSON.parse(JSON.stringify(history)) : [];
-        renderTimelineList();
-      }
-
-      // ---------- 表单附件管理 ----------
-      let currentFormAttachments = [];
-      let editingRecordId = null;
-
-      function resetAttachmentUI() {
-        currentFormAttachments = [];
-        document.getElementById('attachmentList').innerHTML = '';
-        document.getElementById('attachmentInput').value = '';
-      }
-
-      async function loadAttachmentsForEdit(recordId) {
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readonly');
-        const store = tx.objectStore(DB_STORE);
-        const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
-        const attached = all.filter(a => a.recordId === recordId);
-        renderAttachmentList(attached.map(a => ({ name: a.name, size: a.size })), true);
-      }
-
-      function renderAttachmentList(files, isSaved = false) {
-        const listEl = document.getElementById('attachmentList');
-        listEl.innerHTML = '';
-        files.forEach((file, index) => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <span class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)} ${file.size ? `(${(file.size/1024).toFixed(1)} KB)` : ''}</span>
-            <span class="attachment-actions">
-              ${isSaved ? `<button type="button" class="btn download-attachment" data-file="${escapeHtml(file.name)}">⬇下载</button>` : ''}
-              <button type="button" class="btn delete-attachment" data-index="${index}" data-saved="${isSaved}" data-file="${escapeHtml(file.name)}">✕</button>
-            </span>
-          `;
-          listEl.appendChild(li);
-        });
-      }
-
-      async function handleAttachmentDelete(e) {
-        const btn = e.target.closest('.delete-attachment');
-        if (!btn) return;
-        const isSaved = btn.dataset.saved === 'true';
-        const index = parseInt(btn.dataset.index);
-        const fileName = btn.dataset.file;
-        if (isSaved && editingRecordId) {
-          await deleteAttachment(editingRecordId, fileName);
-          await loadAttachmentsForEdit(editingRecordId);
-        } else {
-          currentFormAttachments.splice(index, 1);
-          renderAttachmentList(currentFormAttachments.map(f => ({ name: f.name, size: f.size })), false);
-        }
-      }
-
-      function handleAttachmentDownload(e) {
-        const btn = e.target.closest('.download-attachment');
-        if (!btn) return;
-        const fileName = btn.dataset.file;
-        if (editingRecordId) downloadAttachment(editingRecordId, fileName);
-      }
-
-      document.getElementById('addAttachmentBtn').addEventListener('click', () => {
-        document.getElementById('attachmentInput').click();
-      });
-
-      document.getElementById('attachmentInput').addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-          currentFormAttachments.push({ name: file.name, size: file.size, file: file });
-        });
-        renderAttachmentList(currentFormAttachments.map(f => ({ name: f.name, size: f.size })), false);
-        e.target.value = '';
-      });
-
-      document.getElementById('attachmentList').addEventListener('click', function(e) {
-        handleAttachmentDelete(e);
-        handleAttachmentDownload(e);
-      });
-
-      // 添加进度时间线按钮
-      document.getElementById('addTimelineBtn').addEventListener('click', () => {
-        addTimelineItem();
-      });
-
-      function openAddModal() {
-        resetForm();
-        resetAttachmentUI();
-        resetTimelineUI();
-        editingRecordId = null;
-        document.getElementById('modalTitle').textContent = '添加申请';
-        document.getElementById('formModal').classList.add('active');
-      }
-
-      async function openEditModal(id) {
-        const app = applications.find(a => a.id === id);
-        if (!app) return;
-        resetAttachmentUI();
-        editingRecordId = id;
-        document.getElementById('recordId').value = app.id;
-        document.getElementById('company').value = app.company;
-        document.getElementById('position').value = app.position;
-        document.getElementById('category').value = app.category || '';
-        document.getElementById('location').value = app.location || '';
-        document.getElementById('applyDate').value = app.date || '';
-        document.getElementById('status').value = app.status || '待投递';
-        document.getElementById('jobDescription').value = app.jobDescription || '';
-        document.getElementById('note').value = app.note || '';
-        loadTimelineForEdit(app.progressHistory);
-        document.getElementById('modalTitle').textContent = '编辑申请';
-        document.getElementById('formModal').classList.add('active');
-        await loadAttachmentsForEdit(id);
-      }
-
-      function closeFormModal() { document.getElementById('formModal').classList.remove('active'); }
-
-      async function saveRecord(e) {
-        e.preventDefault();
-        const id = document.getElementById('recordId').value;
-        const company = document.getElementById('company').value.trim();
-        const position = document.getElementById('position').value.trim();
-        const category = document.getElementById('category').value;
-        const location = document.getElementById('location').value.trim();
-        const date = document.getElementById('applyDate').value;
-        const status = document.getElementById('status').value;
-        const jobDescription = document.getElementById('jobDescription').value.trim();
-        const note = document.getElementById('note').value.trim();
-        const progressHistory = currentTimeline.map(item => ({ status: item.status, date: item.date }));
-
-        if (!company || !position) { alert('公司名称和职位不能为空'); return; }
-
-        const recordId = id || generateId();
-        const record = {
-          id: recordId,
-          company, position, category, location, date, status,
-          jobDescription, note, progressHistory
-        };
-
-        // 保存新附件
-        for (const item of currentFormAttachments) {
-          if (item.file) await saveAttachment(recordId, item.file);
-        }
-
-        if (id) {
-          const index = applications.findIndex(a => a.id === id);
-          if (index !== -1) applications[index] = record;
-        } else {
-          applications.unshift(record);
-        }
-        saveData();
-        renderTable();
-        closeFormModal();
-      }
-
-      function resetForm() {
-        document.getElementById('appForm').reset();
-        document.getElementById('recordId').value = '';
-        document.getElementById('applyDate').value = '';
-        document.getElementById('category').value = '';
-        document.getElementById('jobDescription').value = '';
-      }
-
-      // ---------- 导出/导入 ----------
-      function formatLocationForExport(loc) {
-        if (!loc) return '';
-        return loc.replace(/[\/,;|]+/g, '、').replace(/\s+/g, '、').replace(/、+/g, '、').replace(/^、|、$/g, '');
-      }
-
-      function csvEscape(str) {
-        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-          return '"' + str.replace(/"/g, '""') + '"';
-        }
-        return str;
-      }
-
-      async function exportToCSV() {
-        await refreshAttachmentCounts();
-        const headers = ['公司', '职位', '岗位类别', '地点', '投递日期', '当前进度', '岗位描述', '备注', '附件数量', '进度时间线'];
-        const rows = applications.map(app => [
-          app.company || '', app.position || '', app.category || '',
-          formatLocationForExport(app.location || ''), app.date || '', app.status || '',
-          app.jobDescription || '', app.note || '', attachmentCountCache[app.id] || 0,
-          formatTimeline(app.progressHistory)
-        ]);
-        let csvContent = '\uFEFF';
-        csvContent += headers.map(csvEscape).join(',') + '\n';
-        rows.forEach(row => { csvContent += row.map(csvEscape).join(',') + '\n'; });
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `秋招记录_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-
-      async function exportFullBackup() {
-        if (!confirm('导出完整备份包含所有附件文件（可能较大），继续吗？')) return;
-        const database = await openDB();
-        const tx = database.transaction(DB_STORE, 'readonly');
-        const store = tx.objectStore(DB_STORE);
-        const allAttachments = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
-
-        const backup = {
-          version: 3,
-          applications: applications,
-          attachments: await Promise.all(allAttachments.map(async att => ({
-            id: att.id, recordId: att.recordId, name: att.name, type: att.type, size: att.size,
-            dataBase64: await blobToBase64(new Blob([att.data], { type: att.type }))
-          })))
-        };
-
-        const jsonStr = JSON.stringify(backup);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `秋招完整备份_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-
-      function blobToBase64(blob) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result.split(',')[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      }
-
-      function base64ToBlob(base64, type) {
-        const byteChars = atob(base64);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteChars.length; offset += 512) {
-          const slice = byteChars.slice(offset, offset + 512);
-          const byteNumbers = new Array(slice.length);
-          for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
-          byteArrays.push(new Uint8Array(byteNumbers));
-        }
-        return new Blob(byteArrays, { type });
-      }
-
-      function parseTimelineString(str) {
-        if (!str) return [];
-        // 格式: "状态:日期; 状态:日期"
-        return str.split(';').map(part => part.trim()).filter(Boolean).map(item => {
-          const [status, date] = item.split(':').map(s => s.trim());
-          return { status: status || '', date: date || '' };
-        });
-      }
-
-      async function handleImportFile(file) {
-        const ext = file.name.split('.').pop().toLowerCase();
-        const reader = new FileReader();
-
-        if (ext === 'json') {
-          reader.onload = async (e) => {
-            try {
-              const data = JSON.parse(e.target.result);
-              if (data.applications && data.attachments) {
-                if (!confirm('导入完整备份将覆盖所有记录和附件，确定继续吗？')) return;
-                const database = await openDB();
-                const tx = database.transaction(DB_STORE, 'readwrite');
-                const store = tx.objectStore(DB_STORE);
-                store.clear();
-                await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = (e) => reject(e.target.error); });
-                for (const att of data.attachments) {
-                  const blob = base64ToBlob(att.dataBase64, att.type);
-                  const arrayBuffer = await blob.arrayBuffer();
-                  const tx2 = database.transaction(DB_STORE, 'readwrite');
-                  const store2 = tx2.objectStore(DB_STORE);
-                  store2.put({ id: att.id, recordId: att.recordId, name: att.name, type: att.type, data: arrayBuffer, size: att.size });
-                  await new Promise((resolve, reject) => { tx2.oncomplete = resolve; tx2.onerror = (e) => reject(e.target.error); });
+            // ---------- 侧边栏切换 ----------
+            function switchSidebar(item) {
+                sidebarItems.value.forEach(i => i.active = false);
+                item.active = true;
+                if (item.name === '投递记录') {
+                    // 可以导航到记录页，目前仅提示
+                    alert('请点击“总览”返回仪表板');
+                    item.active = false;
+                    sidebarItems.value[0].active = true;
                 }
-                applications = data.applications.map(app => ({
-                  ...app,
-                  category: app.category || '',
-                  location: app.location || '',
-                  jobDescription: app.jobDescription || '',
-                  progressHistory: app.progressHistory || []
-                }));
-                saveData(); renderTable(); alert('完整备份导入成功！');
-              } else if (Array.isArray(data)) {
-                if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？（附件不会自动迁移）')) return;
-                applications = data.map(item => ({
-                  ...item,
-                  category: item.category || '',
-                  location: item.location || '',
-                  jobDescription: item.jobDescription || '',
-                  progressHistory: item.progressHistory || []
-                }));
-                saveData(); renderTable(); alert('导入成功！（附件需手动添加）');
-              } else { alert('文件格式不正确'); }
-            } catch (error) { alert('JSON 文件格式不正确'); }
-          };
-          reader.readAsText(file);
-        } else if (ext === 'csv') {
-          reader.onload = async (e) => {
-            const data = parseCSV(e.target.result);
-            if (data.length === 0) { alert('CSV 文件为空或格式不正确'); return; }
-            if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-            applications = data.map(item => ({
-              id: generateId(),
-              company: item.company || '',
-              position: item.position || '',
-              category: item.category || '',
-              location: item.location || '',
-              date: item.date || '',
-              status: item.status || '待投递',
-              jobDescription: item.jobDescription || '',
-              note: item.note || '',
-              progressHistory: item.progressHistory ? parseTimelineString(item.progressHistory) : []
-            }));
-            saveData(); renderTable(); alert('导入成功！');
-          };
-          reader.readAsText(file);
-        } else if (ext === 'xlsx' || ext === 'xls') {
-          reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheet];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            if (jsonData.length < 2) { alert('Excel 文件无数据'); return; }
-            const headers = jsonData[0].map(h => String(h).trim());
-            const records = [];
-            const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note', '进度时间线':'progressHistory' };
-            for (let i = 1; i < jsonData.length; i++) {
-              const row = jsonData[i];
-              const obj = {};
-              headers.forEach((header, idx) => {
-                const val = row[idx] !== undefined ? String(row[idx]).trim() : '';
-                const key = map[header] || header;
-                obj[key] = val;
-              });
-              if (obj.company || obj.position) records.push(obj);
             }
-            if (records.length === 0) { alert('未从 Excel 中识别到有效记录'); return; }
-            if (applications.length > 0 && !confirm('导入会覆盖当前所有记录，确定继续吗？')) return;
-            applications = records.map(item => ({
-              id: generateId(),
-              company: item.company || '',
-              position: item.position || '',
-              category: item.category || '',
-              location: item.location || '',
-              date: item.date || '',
-              status: item.status || '待投递',
-              jobDescription: item.jobDescription || '',
-              note: item.note || '',
-              progressHistory: item.progressHistory ? parseTimelineString(item.progressHistory) : []
-            }));
-            saveData(); renderTable(); alert('导入成功！');
-          };
-          reader.readAsArrayBuffer(file);
-        } else {
-          alert('不支持的文件格式，请选择 JSON / CSV / Excel 文件');
-        }
-      }
 
-      function parseCSV(text) {
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length < 2) return [];
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        const data = [];
-        for (let i = 1; i < lines.length; i++) {
-          const values = [];
-          let current = '', inQuotes = false;
-          for (const ch of lines[i]) {
-            if (ch === '"') { inQuotes = !inQuotes; continue; }
-            if (ch === ',' && !inQuotes) { values.push(current.trim()); current = ''; continue; }
-            current += ch;
-          }
-          values.push(current.trim());
-          const obj = {};
-          const map = { '公司':'company', '职位':'position', '岗位类别':'category', '地点':'location', '投递日期':'date', '当前进度':'status', '岗位描述':'jobDescription', '备注':'note', '进度时间线':'progressHistory' };
-          headers.forEach((header, idx) => {
-            let val = values[idx] ? values[idx].replace(/^"|"$/g, '') : '';
-            const key = map[header] || header;
-            obj[key] = val;
-          });
-          if (obj.company || obj.position) data.push(obj);
-        }
-        return data;
-      }
-
-      function resetFilters() {
-        document.getElementById('filterCompany').value = '';
-        document.getElementById('filterLocation').value = '';
-        document.getElementById('filterCategory').value = '';
-        document.getElementById('filterStatus').value = '';
-        renderTable();
-      }
-
-      // ---------- 事件绑定 ----------
-      function bindEvents() {
-        document.getElementById('addBtn').addEventListener('click', openAddModal);
-        document.getElementById('cancelBtn').addEventListener('click', closeFormModal);
-        document.getElementById('formModal').addEventListener('click', (e) => { if (e.target === document.getElementById('formModal')) closeFormModal(); });
-        document.getElementById('appForm').addEventListener('submit', saveRecord);
-        document.getElementById('exportBtn').addEventListener('click', exportToCSV);
-        document.getElementById('exportJsonBtn').addEventListener('click', exportFullBackup);
-        document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
-        document.getElementById('importFile').addEventListener('change', (e) => {
-          if (e.target.files.length > 0) {
-            handleImportFile(e.target.files[0]);
-            e.target.value = '';
-          }
-        });
-
-        document.getElementById('batchDeleteBtn').addEventListener('click', batchDelete);
-        document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
-          const checked = e.target.checked;
-          document.querySelectorAll('#tableBody .row-checkbox').forEach(cb => { cb.checked = checked; });
-          updateBatchDeleteButton();
-        });
-
-        document.getElementById('tableBody').addEventListener('click', async (e) => {
-          const attachLink = e.target.closest('.attachment-link');
-          if (attachLink) {
-            const recordId = attachLink.dataset.recordId;
-            const attachments = await getAttachmentsByRecord(recordId);
-            if (attachments.length === 0) return;
-            const choice = prompt('附件列表（输入序号下载，或取消）：\n' + attachments.map((a, i) => `${i+1}. ${a.name}`).join('\n'));
-            if (choice !== null) {
-              const idx = parseInt(choice) - 1;
-              if (idx >= 0 && idx < attachments.length) downloadAttachment(recordId, attachments[idx].name);
+            // ---------- 编辑 ----------
+            function editRecord(id) {
+                const app = applications.value.find(a => a.id === id);
+                if (!app) return;
+                editForm.id = app.id;
+                editForm.company = app.company;
+                editForm.position = app.position;
+                editForm.category = app.category || '';
+                editForm.location = app.location || '';
+                editForm.date = app.date || '';
+                editForm.status = app.status || '待投递';
+                editForm.note = app.note || '';
+                showEditModal.value = true;
             }
-            return;
-          }
-          const expandableTd = e.target.closest('.expandable-td');
-          if (expandableTd) {
-            expandableTd.classList.toggle('expanded');
-            return;
-          }
-          if (e.target.classList.contains('row-checkbox')) {
-            updateBatchDeleteButton();
-            return;
-          }
-          const btn = e.target.closest('button');
-          if (!btn) return;
-          const id = btn.dataset.id;
-          if (btn.classList.contains('edit')) openEditModal(id);
-          else if (btn.classList.contains('delete')) deleteRecord(id);
-        });
 
-        document.getElementById('filterCompany').addEventListener('input', renderTable);
-        document.getElementById('filterLocation').addEventListener('input', renderTable);
-        document.getElementById('filterCategory').addEventListener('change', renderTable);
-        document.getElementById('filterStatus').addEventListener('change', renderTable);
-        document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
-      }
+            function closeEditModal() {
+                showEditModal.value = false;
+            }
 
-      // 启动
-      (async function init() {
-        await openDB();
-        loadData();
-        await renderTable();
-        bindEvents();
-      })();
-    })();
-  </script>
+            function saveEdit() {
+                const idx = applications.value.findIndex(a => a.id === editForm.id);
+                if (idx !== -1) {
+                    applications.value[idx] = {
+                        ...applications.value[idx],
+                        company: editForm.company.trim(),
+                        position: editForm.position.trim(),
+                        category: editForm.category,
+                        location: editForm.location.trim(),
+                        date: editForm.date,
+                        status: editForm.status,
+                        note: editForm.note.trim(),
+                    };
+                    localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
+                }
+                closeEditModal();
+            }
+
+            // ---------- 加载数据 ----------
+            function loadData() {
+                const stored = localStorage.getItem('qiuzhao_applications_v2');
+                if (stored) {
+                    try {
+                        applications.value = JSON.parse(stored);
+                    } catch (e) { applications.value = []; }
+                }
+                // 兼容旧数据
+                if (!applications.value || !Array.isArray(applications.value)) {
+                    applications.value = [];
+                }
+                // 确保字段完整
+                applications.value = applications.value.map(a => ({
+                    ...a,
+                    category: a.category || '',
+                    status: a.status || '待投递',
+                    location: a.location || '',
+                    note: a.note || '',
+                    jobDescription: a.jobDescription || '',
+                    progressHistory: a.progressHistory || [],
+                }));
+                // 计算侧边栏角标
+                const pendingCount = applications.value.filter(a => a.status === '待投递').length;
+                const interviewCount = applications.value.filter(a => ['一面', '二面', 'HR面', '终面'].includes(a
+                    .status)).length;
+                sidebarItems.value[1].badge = applications.value.length;
+                sidebarItems.value[4].badge = pendingCount;
+                sidebarItems.value[3].badge = interviewCount;
+            }
+
+            onMounted(() => {
+                loadData();
+                // 响应式窗口监听
+                window.addEventListener('resize', () => {
+                    // Vue 3 自动响应
+                });
+            });
+
+            return {
+                currentDate,
+                weekdayCN,
+                userInitial,
+                isMobile,
+                sidebarItems,
+                funnelStats,
+                recentInterviews,
+                recentApplications,
+                upcomingAlerts,
+                focusRecord,
+                intentPositions,
+                showEditModal,
+                editForm,
+                getStatusClass,
+                switchSidebar,
+                editRecord,
+                closeEditModal,
+                saveEdit,
+                toggleFocus,
+                isFocused,
+            };
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>
