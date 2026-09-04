@@ -60,13 +60,13 @@
             </div>
         </header>
 
-        <!-- 侧边栏 -->
+        <!-- 侧边栏（已移除红点角标） -->
         <aside class="fixed left-0 top-14 bottom-0 z-40 sidebar overflow-y-auto transition-all duration-200" style="background: #5b21b6; width: 200px;">
             <nav class="py-4 px-2 space-y-1">
                 <div v-for="item in sidebarItems" :key="item.name" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer" :class="{ 'active': item.active }" @click="switchSidebar(item)">
                     <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
                     <span class="sidebar-text text-white text-sm font-medium">{{ item.name }}</span>
-                    <span v-if="item.badge > 0" class="sidebar-badge ml-auto">{{ item.badge }}</span>
+                    <!-- 红点角标已移除 -->
                 </div>
             </nav>
         </aside>
@@ -76,7 +76,6 @@
             <transition name="fade" mode="out-in">
                 <!-- 总览页面 -->
                 <div v-if="currentPage === '总览'" key="总览" class="p-4 md:p-6 max-w-7xl mx-auto">
-                    <!-- 页面标题 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
                         <span class="text-sm text-gray-500">{{ currentDate }} 周{{ weekdayCN }}</span>
@@ -181,47 +180,18 @@
                         </div>
                     </div>
 
-                    <!-- 底部功能区 -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                        <div class="lg:col-span-1">
-                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
-                                <h2 class="text-lg font-semibold text-gray-700 mb-3">⭐ 重点关注</h2>
-                                <template v-if="focusRecord">
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-semibold text-gray-800 text-lg">{{ focusRecord.company }}</span>
-                                            <span class="text-xl cursor-pointer hover:scale-110 transition-transform" @click="toggleFocus(focusRecord.id)">{{ isFocused(focusRecord.id) ? '⭐' : '☆' }}</span>
-                                        </div>
-                                        <div class="text-sm text-gray-600">{{ focusRecord.position }}</div>
-                                        <div class="text-xs text-gray-400 flex items-center gap-1"><span>📍</span>{{ focusRecord.location || '未设置' }}</div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="tag" :class="getStatusClass(focusRecord.status)">{{ focusRecord.status }}</span>
-                                            <span class="text-xs text-gray-400">{{ focusRecord.date || '未投递' }}</span>
-                                        </div>
-                                        <button class="w-full py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium" @click="editRecord(focusRecord.id)">编辑</button>
-                                    </div>
-                                </template>
-                                <template v-else><div class="text-center text-gray-400 py-6">暂无重点关注</div></template>
+                    <!-- 已投公司统计（替代原重点关注和意向岗位） -->
+                    <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-3">🏢 已投公司统计</h2>
+                        <template v-if="appliedCompanies.length > 0">
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="(company, idx) in appliedCompanies" :key="idx" class="tag bg-blue-100 text-blue-800 text-sm px-3 py-1.5">
+                                    {{ company.name }} ({{ company.count }})
+                                </span>
                             </div>
-                        </div>
-
-                        <div class="lg:col-span-2">
-                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
-                                <h2 class="text-lg font-semibold text-gray-700 mb-3">🎯 意向岗位</h2>
-                                <template v-if="intentPositions.length > 0">
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                        <div v-for="(item, i) in intentPositions" :key="i" class="border border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-colors cursor-pointer" @click="editRecord(item.id)">
-                                            <div class="font-medium text-gray-800 text-sm truncate">{{ item.company }}</div>
-                                            <div class="text-xs text-gray-500 truncate mt-0.5">{{ item.position }}</div>
-                                            <div class="mt-2 flex items-center gap-2">
-                                                <span class="tag text-xs" :class="item.priority === '高优先' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'">{{ item.priority || '中优先' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-else><div class="text-center text-gray-400 py-6">暂无意向岗位记录</div></template>
-                            </div>
-                        </div>
+                            <div class="text-sm text-gray-500 mt-3">共投递 {{ appliedCompanies.length }} 家公司</div>
+                        </template>
+                        <template v-else><div class="text-center text-gray-400 py-6">暂无已投递记录</div></template>
                     </div>
                 </div>
 
@@ -381,7 +351,7 @@
                 </div>
             </transition>
 
-            <!-- 编辑投递记录模态框（总览页简版） -->
+            <!-- 编辑投递记录简版模态框（总览页使用） -->
             <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">✏️ 编辑投递记录</h2>
@@ -401,7 +371,7 @@
                 </div>
             </div>
 
-            <!-- 新增/编辑投递记录模态框（投递记录页） -->
+            <!-- 新增/编辑投递记录完整模态框（投递记录页使用，含进度时间线） -->
             <div v-if="showRecordModal" class="modal-overlay" @click.self="closeRecordModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ recordModalTitle }}</h2>
@@ -414,6 +384,15 @@
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
                         <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：负责数据平台建设..."></textarea></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
+                        <!-- 进度时间线 -->
+                        <div>
+                            <label class="text-xs font-medium text-gray-600">📅 进度时间线</label>
+                            <div id="timelineContainer">
+                                <div id="timelineList"></div>
+                                <button type="button" class="btn mt-2 px-3 py-1.5 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50" @click="addTimelineItem">＋ 添加进度节点</button>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">记录测评、面试等关键节点的日期。</p>
+                        </div>
                     </div>
                     <div class="flex gap-2 mt-5">
                         <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeRecordModal">取消</button>
@@ -422,7 +401,7 @@
                 </div>
             </div>
 
-            <!-- 笔记编辑模态框 -->
+            <!-- 复盘笔记编辑模态框 -->
             <div v-if="showNoteModal" class="modal-overlay" @click.self="closeNoteModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ noteForm.id ? '编辑笔记' : '新建笔记' }}</h2>
@@ -441,7 +420,7 @@
     </div>
 
     <script>
-        const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+        const { createApp, ref, reactive, computed, onMounted, watch, nextTick } = Vue;
 
         // ---------- IndexedDB 常量与函数 ----------
         const DB_NAME = 'QiuzhaoAttachments';
@@ -539,15 +518,11 @@
             setup() {
                 // ---------- 数据 ----------
                 const applications = ref([]);
-                const focusIds = reactive(new Set());
-                const showEditModal = ref(false);
-                const showRecordModal = ref(false);
-                const recordModalTitle = ref('添加投递');
                 const currentPage = ref('总览');
                 const expandedNotes = reactive(new Set());
 
                 const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '' });
-                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', progressHistory: [] });
                 const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
                 const selectedIds = ref([]);
                 const selectAll = ref(false);
@@ -562,12 +537,16 @@
                 const showNoteModal = ref(false);
                 const noteForm = reactive({ id: '', title: '', content: '', date: '' });
 
+                const showEditModal = ref(false);
+                const showRecordModal = ref(false);
+                const recordModalTitle = ref('添加投递');
+
                 const sidebarItems = ref([
-                    { name: '总览', icon: '📊', badge: 0, active: true },
-                    { name: '投递记录', icon: '📤', badge: 0, active: false },
-                    { name: '简历管理', icon: '📄', badge: 0, active: false },
-                    { name: '复盘笔记', icon: '📝', badge: 0, active: false },
-                    { name: '企业库', icon: '🏢', badge: 0, active: false },
+                    { name: '总览', icon: '📊', active: true },
+                    { name: '投递记录', icon: '📤', active: false },
+                    { name: '简历管理', icon: '📄', active: false },
+                    { name: '复盘笔记', icon: '📝', active: false },
+                    { name: '企业库', icon: '🏢', active: false },
                 ]);
 
                 const currentDate = computed(() => {
@@ -658,26 +637,15 @@
                     return alerts.slice(0, 3);
                 });
 
-                // ---------- 重点关注 ----------
-                const focusRecord = computed(() => {
-                    if (applications.value.length === 0) return null;
-                    const focused = applications.value.find(a => focusIds.has(a.id));
-                    if (focused) return focused;
-                    return applications.value.find(a => a.status !== '待投递') || applications.value[0] || null;
-                });
-                function isFocused(id) { return focusIds.has(id); }
-                function toggleFocus(id) {
-                    if (focusIds.has(id)) focusIds.delete(id);
-                    else focusIds.add(id);
-                    // 触发响应式更新
-                    applications.value = [...applications.value];
-                }
-
-                // ---------- 意向岗位 ----------
-                const intentPositions = computed(() => {
-                    return applications.value.filter(a => ['待投递','已投递'].includes(a.status))
-                        .slice(0, 8)
-                        .map((a, i) => ({ id: a.id, company: a.company, position: a.position, priority: i % 3 === 0 ? '高优先' : '中优先' }));
+                // ---------- 已投公司统计 ----------
+                const appliedCompanies = computed(() => {
+                    const map = new Map();
+                    applications.value.forEach(app => {
+                        if (app.status !== '待投递' && app.company) {
+                            map.set(app.company, (map.get(app.company) || 0) + 1);
+                        }
+                    });
+                    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
                 });
 
                 // ---------- 状态标签颜色 ----------
@@ -755,8 +723,11 @@
                     recordForm.status = '待投递';
                     recordForm.jobDescription = '';
                     recordForm.note = '';
+                    recordForm.progressHistory = [];
                     recordModalTitle.value = '新增投递';
                     showRecordModal.value = true;
+                    // 重新渲染时间线列表
+                    nextTick(() => renderTimelineList());
                 }
                 function openEditModalFromRecord(id) {
                     const app = applications.value.find(a => a.id === id);
@@ -770,8 +741,10 @@
                     recordForm.status = app.status || '待投递';
                     recordForm.jobDescription = app.jobDescription || '';
                     recordForm.note = app.note || '';
+                    recordForm.progressHistory = app.progressHistory ? JSON.parse(JSON.stringify(app.progressHistory)) : [];
                     recordModalTitle.value = '编辑投递';
                     showRecordModal.value = true;
+                    nextTick(() => renderTimelineList());
                 }
                 function closeRecordModal() { showRecordModal.value = false; }
                 function saveRecordForm() {
@@ -779,33 +752,26 @@
                         alert('公司名称和职位不能为空');
                         return;
                     }
+                    const recordData = {
+                        company: recordForm.company.trim(),
+                        position: recordForm.position.trim(),
+                        category: recordForm.category,
+                        location: recordForm.location.trim(),
+                        date: recordForm.date,
+                        status: recordForm.status,
+                        jobDescription: recordForm.jobDescription.trim(),
+                        note: recordForm.note.trim(),
+                        progressHistory: recordForm.progressHistory || []
+                    };
                     if (recordForm.id) {
                         const idx = applications.value.findIndex(a => a.id === recordForm.id);
                         if (idx !== -1) {
-                            applications.value[idx] = {
-                                ...applications.value[idx],
-                                company: recordForm.company.trim(),
-                                position: recordForm.position.trim(),
-                                category: recordForm.category,
-                                location: recordForm.location.trim(),
-                                date: recordForm.date,
-                                status: recordForm.status,
-                                jobDescription: recordForm.jobDescription.trim(),
-                                note: recordForm.note.trim(),
-                            };
+                            applications.value[idx] = { ...applications.value[idx], ...recordData };
                         }
                     } else {
                         applications.value.unshift({
                             id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                            company: recordForm.company.trim(),
-                            position: recordForm.position.trim(),
-                            category: recordForm.category,
-                            location: recordForm.location.trim(),
-                            date: recordForm.date,
-                            status: recordForm.status,
-                            jobDescription: recordForm.jobDescription.trim(),
-                            note: recordForm.note.trim(),
-                            progressHistory: [],
+                            ...recordData
                         });
                     }
                     localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
@@ -849,12 +815,54 @@
                     else expandedNotes.add(id);
                 }
 
+                // ---------- 进度时间线管理 ----------
+                function renderTimelineList() {
+                    const listEl = document.getElementById('timelineList');
+                    if (!listEl) return;
+                    listEl.innerHTML = '';
+                    (recordForm.progressHistory || []).forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'progress-line-item';
+                        div.innerHTML = `
+                            <select class="timeline-status" data-index="${index}">
+                                ${['待投递','已投递','测评','笔试','一面','二面','HR面','终面','Offer','拒信','已签约'].map(s => `<option value="${s}" ${s === item.status ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                            <input type="date" class="timeline-date-input" data-index="${index}" value="${item.date || ''}">
+                            <button type="button" class="delete-timeline" data-index="${index}">✕</button>
+                        `;
+                        listEl.appendChild(div);
+                    });
+                    // 绑定事件
+                    listEl.querySelectorAll('.timeline-status').forEach(sel => {
+                        sel.addEventListener('change', (e) => {
+                            const idx = parseInt(e.target.dataset.index);
+                            recordForm.progressHistory[idx].status = e.target.value;
+                        });
+                    });
+                    listEl.querySelectorAll('.timeline-date-input').forEach(inp => {
+                        inp.addEventListener('change', (e) => {
+                            const idx = parseInt(e.target.dataset.index);
+                            recordForm.progressHistory[idx].date = e.target.value;
+                        });
+                    });
+                    listEl.querySelectorAll('.delete-timeline').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const idx = parseInt(e.target.dataset.index);
+                            recordForm.progressHistory.splice(idx, 1);
+                            renderTimelineList();
+                        });
+                    });
+                }
+                function addTimelineItem() {
+                    recordForm.progressHistory.push({ status: '测评', date: '' });
+                    renderTimelineList();
+                }
+
                 // ---------- 简历管理 ----------
                 async function loadResumes() {
                     try {
                         const resumes = await getAttachmentsByRecord('__resume__');
                         resumeList.value = resumes;
-                        sidebarItems.value[2].badge = resumes.length;
                     } catch(e) { console.error(e); }
                 }
                 function triggerResumeUpload() {
@@ -882,7 +890,6 @@
                     if (stored) {
                         try { notes.value = JSON.parse(stored); } catch(e) { notes.value = []; }
                     } else { notes.value = []; }
-                    sidebarItems.value[3].badge = notes.value.length;
                 }
                 function openNoteModal(note = null) {
                     if (note) {
@@ -940,7 +947,6 @@
                         jobDescription: a.jobDescription || '',
                         progressHistory: a.progressHistory || [],
                     }));
-                    sidebarItems.value[1].badge = applications.value.length;
                 }
 
                 onMounted(() => {
@@ -953,7 +959,7 @@
                     applications, currentPage, sidebarItems,
                     currentDate, weekdayCN, userInitial,
                     funnelStats, recentInterviews, recentApplications,
-                    upcomingAlerts, focusRecord, intentPositions,
+                    upcomingAlerts, appliedCompanies,
                     showEditModal, showRecordModal, recordModalTitle,
                     editForm, recordForm, recordFilters,
                     filteredRecords, filteredRecordCount, paginatedRecords, totalRecordPages, currentRecordPage,
@@ -966,6 +972,7 @@
                     toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
                     triggerResumeUpload, uploadResume, downloadResume, deleteResume,
                     openNoteModal, closeNoteModal, saveNote, deleteNote,
+                    addTimelineItem, renderTimelineList,
                     loadData
                 };
             }
