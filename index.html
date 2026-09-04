@@ -4,989 +4,799 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>秋招管理系统</title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>
-        :root {
-            --primary: #6d28d9;
-            --primary-dark: #5b21b6;
-            --primary-light: #8b5cf6;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f5f6fa;
-            overflow-x: hidden;
-        }
-        .sidebar-item {
-            transition: all 0.2s ease;
-        }
-        .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .sidebar-item.active {
-            background: rgba(255, 255, 255, 0.25);
-            border-left: 3px solid #fff;
-        }
-        .funnel-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-        }
-        .funnel-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        .funnel-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #c4b5fd;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-        .tag {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        }
-        .stat-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.4;
-            }
-        }
-        .pulse-dot {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        .sidebar-badge {
-            background: #ef4444;
-            color: white;
-            font-size: 11px;
-            padding: 1px 7px;
-            border-radius: 50px;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .expandable-td .expandable-cell {
-            display: inline-block;
-            max-width: 140px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: pointer;
-            vertical-align: middle;
-            transition: all 0.2s;
-        }
-        .expandable-td.expanded .expandable-cell {
-            white-space: normal;
-            overflow: visible;
-            max-width: none;
-        }
-        .attachment-link {
-            color: #1e3c72;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .attachment-list {
-            list-style: none;
-            margin-top: 8px;
-            padding-left: 0;
-        }
-        .attachment-list li {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13px;
-        }
-        .attachment-list .file-name {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-right: 10px;
-        }
-        .attachment-actions button {
-            padding: 2px 8px;
-            font-size: 12px;
-            margin-left: 4px;
-        }
-        .progress-line-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-        .progress-line-item select,
-        .progress-line-item input {
-            min-width: 120px;
-        }
-        .progress-line-item button {
-            padding: 4px 10px;
-        }
-        .timeline-date {
-            font-size: 12px;
-            color: #6b7280;
-            margin-left: 5px;
-        }
-        .timeline-tooltip {
-            cursor: help;
-        }
-        @media (max-width: 1024px) {
-            .funnel-container {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .funnel-arrow {
-                display: none;
-            }
-            .funnel-card {
-                min-width: 45%;
-            }
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 60px !important;
-            }
-            .sidebar-text {
-                display: none;
-            }
-            .sidebar-badge {
-                display: none;
-            }
-            .main-content {
-                margin-left: 60px !important;
-            }
-            .funnel-card {
-                min-width: 100%;
-            }
-        }
-        @media (max-width: 480px) {
-            .grid-cols-2-sm {
-                grid-template-columns: 1fr;
-            }
-        }
-        .table-row-hover:hover {
-            background: #fafafa;
-        }
-        .fade-enter-active,
-        .fade-leave-active {
-            transition: opacity 0.2s;
-        }
-        .fade-enter-from,
-        .fade-leave-to {
-            opacity: 0;
-        }
+        :root { --primary: #6d28d9; --primary-dark: #5b21b6; --primary-light: #8b5cf6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f6fa; overflow-x: hidden; }
+        .sidebar-item { transition: all 0.2s ease; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.15); }
+        .sidebar-item.active { background: rgba(255,255,255,0.25); border-left: 3px solid #fff; }
+        .funnel-card { transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+        .funnel-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .funnel-arrow { display: flex; align-items: center; justify-content: center; color: #c4b5fd; font-size: 20px; flex-shrink: 0; }
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
+        .sidebar-badge { background: #ef4444; color: white; font-size: 11px; padding: 1px 7px; border-radius: 50px; font-weight: 600; flex-shrink: 0; }
+        .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
+        .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
+        .attachment-link { color: #1e3c72; cursor: pointer; text-decoration: underline; }
+        .attachment-list { list-style: none; margin-top: 8px; padding-left: 0; }
+        .attachment-list li { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+        .attachment-list .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+        .attachment-actions button { padding: 2px 8px; font-size: 12px; margin-left: 4px; }
+        .progress-line-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .progress-line-item select, .progress-line-item input { min-width: 120px; }
+        .progress-line-item button { padding: 4px 10px; }
+        .timeline-date { font-size: 12px; color: #6b7280; margin-left: 5px; }
+        .timeline-tooltip { cursor: help; }
+        @media (max-width: 1024px) { .funnel-container { flex-wrap: wrap; gap: 8px; } .funnel-arrow { display: none; } .funnel-card { min-width: 45%; } }
+        @media (max-width: 768px) { .sidebar { width: 60px !important; } .sidebar-text { display: none; } .sidebar-badge { display: none; } .main-content { margin-left: 60px !important; } .funnel-card { min-width: 100%; } }
+        @media (max-width: 480px) { .grid-cols-2-sm { grid-template-columns: 1fr; } }
+        .table-row-hover:hover { background: #fafafa; }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
     </style>
 </head>
 <body>
     <div id="app">
         <!-- 顶部导航栏 -->
-        <header class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4"
-        style="background: linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6);">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white text-xl font-bold shadow-inner">
-                🍂
+        <header class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4" style="background: linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6);">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white text-xl font-bold shadow-inner">🍂</div>
+                <span class="text-white font-semibold text-lg tracking-wide">秋招管理系统</span>
             </div>
-            <span class="text-white font-semibold text-lg tracking-wide">秋招管理系统</span>
-        </div>
-        <div class="ml-auto flex items-center gap-3">
-            <span class="text-white/80 text-sm hidden sm:block">{{ currentDate }}</span>
-            <div class="flex items-center gap-2 bg-white/20 rounded-full pl-1 pr-3 py-1">
-                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-sm font-semibold text-purple-700">
-                    {{ userInitial }}
+            <div class="ml-auto flex items-center gap-3">
+                <span class="text-white/80 text-sm hidden sm:block">{{ currentDate }}</span>
+                <div class="flex items-center gap-2 bg-white/20 rounded-full pl-1 pr-3 py-1">
+                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-sm font-semibold text-purple-700">{{ userInitial }}</div>
+                    <span class="text-white text-sm font-medium">求职者</span>
                 </div>
-                <span class="text-white text-sm font-medium">求职者</span>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- 侧边栏 -->
-    <aside class="fixed left-0 top-14 bottom-0 z-40 sidebar overflow-y-auto transition-all duration-200"
-    style="background: #5b21b6; width: 200px;">
-    <nav class="py-4 px-2 space-y-1">
-        <div v-for="item in sidebarItems" :key="item.name"
-        class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer"
-        :class="{ 'active': item.active }" @click="switchSidebar(item)">
-        <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
-        <span class="sidebar-text text-white text-sm font-medium">{{ item.name }}</span>
-        <span v-if="item.badge > 0" class="sidebar-badge ml-auto">{{ item.badge }}</span>
-    </div>
-</nav>
-</aside>
+        <!-- 侧边栏 -->
+        <aside class="fixed left-0 top-14 bottom-0 z-40 sidebar overflow-y-auto transition-all duration-200" style="background: #5b21b6; width: 200px;">
+            <nav class="py-4 px-2 space-y-1">
+                <div v-for="item in sidebarItems" :key="item.name" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer" :class="{ 'active': item.active }" @click="switchSidebar(item)">
+                    <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
+                    <span class="sidebar-text text-white text-sm font-medium">{{ item.name }}</span>
+                    <span v-if="item.badge > 0" class="sidebar-badge ml-auto">{{ item.badge }}</span>
+                </div>
+            </nav>
+        </aside>
 
-<!-- 主内容区 -->
-<main class="pt-14 main-content transition-all duration-200" style="margin-left: 200px;">
-<!-- 总览页面 -->
-<transition name="fade" mode="out-in">
-    <div v-if="currentPage === '总览'" key="总览" class="p-4 md:p-6 max-w-7xl mx-auto">
-        <!-- 页面标题 -->
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
-            <span class="text-sm text-gray-500">{{ currentDate }} 周{{ weekdayCN }}</span>
-        </div>
-
-        <!-- 预警提示条 -->
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="text-amber-500 text-lg">⚠️</span>
-                <span class="font-semibold text-amber-800">近期截止/面试提醒</span>
-            </div>
-            <div class="space-y-1.5 pl-6">
-                <template v-if="upcomingAlerts.length > 0">
-                    <div v-for="(alert, i) in upcomingAlerts" :key="i" class="flex items-center gap-2">
-                        <span class="stat-dot" :class="alert.urgent ? 'bg-red-500 pulse-dot' : 'bg-orange-500'"></span>
-                        <span class="text-sm text-amber-700">{{ alert.text }}</span>
+        <!-- 主内容区 -->
+        <main class="pt-14 main-content transition-all duration-200" style="margin-left: 200px;">
+            <transition name="fade" mode="out-in">
+                <!-- 总览页面 -->
+                <div v-if="currentPage === '总览'" key="总览" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <!-- 页面标题 -->
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
+                        <span class="text-sm text-gray-500">{{ currentDate }} 周{{ weekdayCN }}</span>
                     </div>
-                </template>
-                <template v-else>
-                    <div class="text-sm text-amber-600">暂无即将到来的截止/面试安排</div>
-                </template>
-            </div>
-        </div>
 
-        <!-- 求职漏斗 -->
-        <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">📈 求职漏斗</h2>
-            <div class="funnel-container flex items-center gap-2 md:gap-3 flex-wrap">
-                <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-blue-200 p-3 md:p-4 min-w-[120px] text-center">
-                    <div class="text-2xl mb-1">📤</div>
-                    <div class="text-3xl font-bold text-blue-600">{{ funnelStats.applied }}</div>
-                    <div class="text-sm text-gray-600 font-medium">已投递</div>
-                    <div class="text-xs text-gray-400 mt-1">投递率 100%</div>
-                    <div class="h-1 bg-blue-500 rounded-full mt-2"></div>
-                </div>
-                <div class="funnel-arrow">→</div>
-                <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-purple-200 p-3 md:p-4 min-w-[120px] text-center">
-                    <div class="text-2xl mb-1">✍️</div>
-                    <div class="text-3xl font-bold text-purple-600">{{ funnelStats.assessment }}</div>
-                    <div class="text-sm text-gray-600 font-medium">笔试/测评</div>
-                    <div class="text-xs text-gray-400 mt-1">笔试率 {{ funnelStats.assessmentRate }}%</div>
-                    <div class="h-1 bg-purple-500 rounded-full mt-2"></div>
-                </div>
-                <div class="funnel-arrow">→</div>
-                <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-yellow-200 p-3 md:p-4 min-w-[120px] text-center">
-                    <div class="text-2xl mb-1">🎤</div>
-                    <div class="text-3xl font-bold text-yellow-600">{{ funnelStats.interviewing }}</div>
-                    <div class="text-sm text-gray-600 font-medium">面试中</div>
-                    <div class="text-xs text-gray-400 mt-1">面试率 {{ funnelStats.interviewRate }}%</div>
-                    <div class="h-1 bg-yellow-500 rounded-full mt-2"></div>
-                </div>
-                <div class="funnel-arrow">→</div>
-                <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-green-200 p-3 md:p-4 min-w-[120px] text-center">
-                    <div class="text-2xl mb-1">🏆</div>
-                    <div class="text-3xl font-bold text-green-600">{{ funnelStats.offer }}</div>
-                    <div class="text-sm text-gray-600 font-medium">已拿Offer</div>
-                    <div class="text-xs text-gray-400 mt-1">Offer率 {{ funnelStats.offerRate }}%</div>
-                    <div class="h-1 bg-green-500 rounded-full mt-2"></div>
-                </div>
-                <div class="funnel-arrow">→</div>
-                <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-red-200 p-3 md:p-4 min-w-[120px] text-center">
-                    <div class="text-2xl mb-1">💔</div>
-                    <div class="text-3xl font-bold text-red-500">{{ funnelStats.rejected }}</div>
-                    <div class="text-sm text-gray-600 font-medium">已挂/拒绝</div>
-                    <div class="text-xs text-gray-400 mt-1">淘汰率 {{ funnelStats.rejectRate }}%</div>
-                    <div class="h-1 bg-red-500 rounded-full mt-2"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 列表展示区 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
-            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
-                <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
-                <template v-if="recentInterviews.length > 0">
-                    <div v-for="(item, i) in recentInterviews" :key="i"
-                    class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
-                    <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.timeLabel }}</span>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
-                        <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                    <!-- 预警提示条 -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-amber-500 text-lg">⚠️</span>
+                            <span class="font-semibold text-amber-800">近期截止/面试提醒</span>
+                        </div>
+                        <div class="space-y-1.5 pl-6">
+                            <template v-if="upcomingAlerts.length > 0">
+                                <div v-for="(alert, i) in upcomingAlerts" :key="i" class="flex items-center gap-2">
+                                    <span class="stat-dot" :class="alert.urgent ? 'bg-red-500 pulse-dot' : 'bg-orange-500'"></span>
+                                    <span class="text-sm text-amber-700">{{ alert.text }}</span>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <div class="text-sm text-amber-600">暂无即将到来的截止/面试安排</div>
+                            </template>
+                        </div>
                     </div>
-                    <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
-                    <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0"
-                    @click="editRecord(item.id)">✏️</button>
-                </div>
-            </template>
-            <template v-else>
-                <div class="text-center text-gray-400 py-6">暂无面试安排</div>
-            </template>
-        </div>
 
-        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-700 mb-3">📋 最近投递（最新10条）</h2>
-            <template v-if="recentApplications.length > 0">
-                <div v-for="(item, i) in recentApplications" :key="i"
-                class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
-                <div class="flex-1 min-w-0">
-                    <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
-                    <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
-                </div>
-                <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
-                <span class="text-xs text-gray-400 w-20 text-right flex-shrink-0">{{ item.date || '-' }}</span>
-            </div>
-        </template>
-        <template v-else>
-            <div class="text-center text-gray-400 py-6">暂无投递记录</div>
-        </template>
-    </div>
-</div>
-
-<!-- 底部功能区 -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-    <div class="lg:col-span-1">
-        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
-            <h2 class="text-lg font-semibold text-gray-700 mb-3">⭐ 重点关注</h2>
-            <template v-if="focusRecord">
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-semibold text-gray-800 text-lg">{{ focusRecord.company }}</span>
-                        <span class="text-xl cursor-pointer hover:scale-110 transition-transform"
-                        @click="toggleFocus(focusRecord.id)">{{ isFocused(focusRecord.id) ? '⭐' : '☆' }}</span>
+                    <!-- 求职漏斗 -->
+                    <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-4">📈 求职漏斗</h2>
+                        <div class="funnel-container flex items-center gap-2 md:gap-3 flex-wrap">
+                            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-blue-200 p-3 md:p-4 min-w-[120px] text-center">
+                                <div class="text-2xl mb-1">📤</div>
+                                <div class="text-3xl font-bold text-blue-600">{{ funnelStats.applied }}</div>
+                                <div class="text-sm text-gray-600 font-medium">已投递</div>
+                                <div class="text-xs text-gray-400 mt-1">投递率 100%</div>
+                                <div class="h-1 bg-blue-500 rounded-full mt-2"></div>
+                            </div>
+                            <div class="funnel-arrow">→</div>
+                            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-purple-200 p-3 md:p-4 min-w-[120px] text-center">
+                                <div class="text-2xl mb-1">✍️</div>
+                                <div class="text-3xl font-bold text-purple-600">{{ funnelStats.assessment }}</div>
+                                <div class="text-sm text-gray-600 font-medium">笔试/测评</div>
+                                <div class="text-xs text-gray-400 mt-1">笔试率 {{ funnelStats.assessmentRate }}%</div>
+                                <div class="h-1 bg-purple-500 rounded-full mt-2"></div>
+                            </div>
+                            <div class="funnel-arrow">→</div>
+                            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-yellow-200 p-3 md:p-4 min-w-[120px] text-center">
+                                <div class="text-2xl mb-1">🎤</div>
+                                <div class="text-3xl font-bold text-yellow-600">{{ funnelStats.interviewing }}</div>
+                                <div class="text-sm text-gray-600 font-medium">面试中</div>
+                                <div class="text-xs text-gray-400 mt-1">面试率 {{ funnelStats.interviewRate }}%</div>
+                                <div class="h-1 bg-yellow-500 rounded-full mt-2"></div>
+                            </div>
+                            <div class="funnel-arrow">→</div>
+                            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-green-200 p-3 md:p-4 min-w-[120px] text-center">
+                                <div class="text-2xl mb-1">🏆</div>
+                                <div class="text-3xl font-bold text-green-600">{{ funnelStats.offer }}</div>
+                                <div class="text-sm text-gray-600 font-medium">已拿Offer</div>
+                                <div class="text-xs text-gray-400 mt-1">Offer率 {{ funnelStats.offerRate }}%</div>
+                                <div class="h-1 bg-green-500 rounded-full mt-2"></div>
+                            </div>
+                            <div class="funnel-arrow">→</div>
+                            <div class="funnel-card flex-1 bg-white rounded-xl border-2 border-red-200 p-3 md:p-4 min-w-[120px] text-center">
+                                <div class="text-2xl mb-1">💔</div>
+                                <div class="text-3xl font-bold text-red-500">{{ funnelStats.rejected }}</div>
+                                <div class="text-sm text-gray-600 font-medium">已挂/拒绝</div>
+                                <div class="text-xs text-gray-400 mt-1">淘汰率 {{ funnelStats.rejectRate }}%</div>
+                                <div class="h-1 bg-red-500 rounded-full mt-2"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-sm text-gray-600">{{ focusRecord.position }}</div>
-                    <div class="text-xs text-gray-400 flex items-center gap-1">
-                        <span>📍</span>{{ focusRecord.location || '未设置' }}
+
+                    <!-- 列表展示区 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+                        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                            <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
+                            <template v-if="recentInterviews.length > 0">
+                                <div v-for="(item, i) in recentInterviews" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+                                    <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.timeLabel }}</span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                                        <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                                    </div>
+                                    <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                                    <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0" @click="editRecord(item.id)">✏️</button>
+                                </div>
+                            </template>
+                            <template v-else><div class="text-center text-gray-400 py-6">暂无面试安排</div></template>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                            <h2 class="text-lg font-semibold text-gray-700 mb-3">📋 最近投递（最新10条）</h2>
+                            <template v-if="recentApplications.length > 0">
+                                <div v-for="(item, i) in recentApplications" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                                        <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                                    </div>
+                                    <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                                    <span class="text-xs text-gray-400 w-20 text-right flex-shrink-0">{{ item.date || '-' }}</span>
+                                </div>
+                            </template>
+                            <template v-else><div class="text-center text-gray-400 py-6">暂无投递记录</div></template>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="tag" :class="getStatusClass(focusRecord.status)">{{ focusRecord.status }}</span>
-                        <span class="text-xs text-gray-400">{{ focusRecord.date || '未投递' }}</span>
+
+                    <!-- 底部功能区 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                        <div class="lg:col-span-1">
+                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
+                                <h2 class="text-lg font-semibold text-gray-700 mb-3">⭐ 重点关注</h2>
+                                <template v-if="focusRecord">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-semibold text-gray-800 text-lg">{{ focusRecord.company }}</span>
+                                            <span class="text-xl cursor-pointer hover:scale-110 transition-transform" @click="toggleFocus(focusRecord.id)">{{ isFocused(focusRecord.id) ? '⭐' : '☆' }}</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600">{{ focusRecord.position }}</div>
+                                        <div class="text-xs text-gray-400 flex items-center gap-1"><span>📍</span>{{ focusRecord.location || '未设置' }}</div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="tag" :class="getStatusClass(focusRecord.status)">{{ focusRecord.status }}</span>
+                                            <span class="text-xs text-gray-400">{{ focusRecord.date || '未投递' }}</span>
+                                        </div>
+                                        <button class="w-full py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium" @click="editRecord(focusRecord.id)">编辑</button>
+                                    </div>
+                                </template>
+                                <template v-else><div class="text-center text-gray-400 py-6">暂无重点关注</div></template>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2">
+                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
+                                <h2 class="text-lg font-semibold text-gray-700 mb-3">🎯 意向岗位</h2>
+                                <template v-if="intentPositions.length > 0">
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                        <div v-for="(item, i) in intentPositions" :key="i" class="border border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-colors cursor-pointer" @click="editRecord(item.id)">
+                                            <div class="font-medium text-gray-800 text-sm truncate">{{ item.company }}</div>
+                                            <div class="text-xs text-gray-500 truncate mt-0.5">{{ item.position }}</div>
+                                            <div class="mt-2 flex items-center gap-2">
+                                                <span class="tag text-xs" :class="item.priority === '高优先' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'">{{ item.priority || '中优先' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-else><div class="text-center text-gray-400 py-6">暂无意向岗位记录</div></template>
+                            </div>
+                        </div>
                     </div>
-                    <button class="w-full py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium"
-                    @click="editRecord(focusRecord.id)">编辑</button>
                 </div>
-            </template>
-            <template v-else>
-                <div class="text-center text-gray-400 py-6">暂无重点关注</div>
-            </template>
-        </div>
-    </div>
 
-    <div class="lg:col-span-2">
-        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-full">
-            <h2 class="text-lg font-semibold text-gray-700 mb-3">🎯 意向岗位</h2>
-            <template v-if="intentPositions.length > 0">
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    <div v-for="(item, i) in intentPositions" :key="i"
-                    class="border border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-colors cursor-pointer"
-                    @click="editRecord(item.id)">
-                    <div class="font-medium text-gray-800 text-sm truncate">{{ item.company }}</div>
-                    <div class="text-xs text-gray-500 truncate mt-0.5">{{ item.position }}</div>
-                    <div class="mt-2 flex items-center gap-2">
-                        <span class="tag text-xs"
-                        :class="item.priority === '高优先' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'">
-                        {{ item.priority || '中优先' }}
-                    </span>
+                <!-- 投递记录页面 -->
+                <div v-else-if="currentPage === '投递记录'" key="投递记录" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-2xl font-bold text-gray-800">📤 投递记录</h1>
+                        <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="openAddModal">＋ 新增投递</button>
+                    </div>
+                    <!-- 筛选区 -->
+                    <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+                        <div class="flex flex-wrap gap-3 items-center">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600 font-medium">🔍 公司</label>
+                                <input type="text" v-model="recordFilters.company" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 min-w-[140px]" placeholder="输入公司名">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600 font-medium">📍 地点</label>
+                                <input type="text" v-model="recordFilters.location" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 min-w-[120px]" placeholder="输入城市">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600 font-medium">📂 类别</label>
+                                <select v-model="recordFilters.category" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                    <option value="">全部</option>
+                                    <option value="技术">技术</option>
+                                    <option value="产品">产品</option>
+                                    <option value="设计">设计</option>
+                                    <option value="运营">运营</option>
+                                    <option value="市场">市场</option>
+                                    <option value="职能">职能</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-600 font-medium">📌 状态</label>
+                                <select v-model="recordFilters.status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                    <option value="">全部</option>
+                                    <option value="待投递">待投递</option>
+                                    <option value="已投递">已投递</option>
+                                    <option value="测评">测评</option>
+                                    <option value="笔试">笔试</option>
+                                    <option value="一面">一面</option>
+                                    <option value="二面">二面</option>
+                                    <option value="HR面">HR面</option>
+                                    <option value="终面">终面</option>
+                                    <option value="Offer">Offer</option>
+                                    <option value="拒信">拒信</option>
+                                    <option value="已签约">已签约</option>
+                                </select>
+                            </div>
+                            <button class="px-3 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm" @click="resetRecordFilters">🔄 重置</button>
+                            <span class="ml-auto text-sm text-gray-500">共 {{ filteredRecordCount }} 条</span>
+                        </div>
+                    </div>
+                    <!-- 表格 -->
+                    <div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
+                        <table class="w-full min-w-[1100px]">
+                            <thead>
+                                <tr class="text-left text-xs text-gray-500 font-semibold border-b border-gray-200">
+                                    <th class="px-3 py-3 w-10"><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="accent-purple-600"></th>
+                                    <th class="px-3 py-3">公司</th>
+                                    <th class="px-3 py-3">职位</th>
+                                    <th class="px-3 py-3">类别</th>
+                                    <th class="px-3 py-3">地点</th>
+                                    <th class="px-3 py-3">投递日期</th>
+                                    <th class="px-3 py-3">当前进度</th>
+                                    <th class="px-3 py-3">备注</th>
+                                    <th class="px-3 py-3">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="filteredRecords.length > 0">
+                                    <tr v-for="app in paginatedRecords" :key="app.id" class="border-b border-gray-100 table-row-hover">
+                                        <td class="px-3 py-2.5"><input type="checkbox" v-model="selectedIds" :value="app.id" class="accent-purple-600"></td>
+                                        <td class="px-3 py-2.5 font-medium text-gray-800">{{ app.company }}</td>
+                                        <td class="px-3 py-2.5 text-gray-600">{{ app.position }}</td>
+                                        <td class="px-3 py-2.5"><span v-if="app.category" class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ app.category }}</span><span v-else class="text-xs text-gray-400">未分类</span></td>
+                                        <td class="px-3 py-2.5 text-gray-600">{{ app.location || '-' }}</td>
+                                        <td class="px-3 py-2.5 text-gray-600">{{ app.date || '-' }}</td>
+                                        <td class="px-3 py-2.5"><span class="tag" :class="getStatusClass(app.status)">{{ app.status || '待投递' }}</span></td>
+                                        <td class="px-3 py-2.5"><span class="expandable-cell cursor-pointer" :title="app.note || ''" @click="toggleExpandNote(app.id)">{{ app.note || '-' }}</span><div v-if="expandedNotes.has(app.id)" class="text-xs text-gray-500 mt-1 whitespace-normal">{{ app.note }}</div></td>
+                                        <td class="px-3 py-2.5"><div class="flex gap-1"><button class="px-2 py-1 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50 transition-colors" @click="openEditModalFromRecord(app.id)">✏️ 编辑</button><button class="px-2 py-1 text-xs border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors" @click="deleteRecord(app.id)">🗑 删除</button></div></td>
+                                    </tr>
+                                </template>
+                                <template v-else><tr><td colspan="9" class="px-3 py-8 text-center text-gray-400">没有匹配的记录</td></tr></template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 分页 -->
+                    <div class="flex items-center justify-between mt-4 flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <button v-if="selectedIds.length > 0" class="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" @click="batchDeleteRecords">🗑 批量删除（{{ selectedIds.length }}）</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentRecordPage === 1" @click="currentRecordPage--">‹ 上一页</button>
+                            <span class="text-sm text-gray-600">第 {{ currentRecordPage }} / {{ totalRecordPages }} 页</span>
+                            <button class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentRecordPage === totalRecordPages" @click="currentRecordPage++">下一页 ›</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 简历管理页面 -->
+                <div v-else-if="currentPage === '简历管理'" key="简历管理" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-2xl font-bold text-gray-800">📄 简历管理</h1>
+                        <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="triggerResumeUpload">＋ 上传简历</button>
+                        <input type="file" ref="resumeInput" class="hidden" accept=".pdf,.doc,.docx,.jpg,.png" @change="uploadResume">
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm p-4">
+                        <template v-if="resumeList.length > 0">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-xs text-gray-500 font-semibold border-b border-gray-200">
+                                        <th class="px-3 py-2">文件名</th>
+                                        <th class="px-3 py-2">大小</th>
+                                        <th class="px-3 py-2">上传时间</th>
+                                        <th class="px-3 py-2">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(resume, idx) in resumeList" :key="idx" class="border-b border-gray-100">
+                                        <td class="px-3 py-2 text-gray-800">{{ resume.name }}</td>
+                                        <td class="px-3 py-2 text-gray-600">{{ (resume.size / 1024).toFixed(1) }} KB</td>
+                                        <td class="px-3 py-2 text-gray-600">{{ resume.date ? new Date(resume.date).toLocaleString() : '-' }}</td>
+                                        <td class="px-3 py-2">
+                                            <button class="px-2 py-1 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50 mr-1" @click="downloadResume(resume.name)">⬇ 下载</button>
+                                            <button class="px-2 py-1 text-xs border border-red-200 text-red-500 rounded hover:bg-red-50" @click="deleteResume(resume.name)">🗑 删除</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template v-else><div class="text-center text-gray-400 py-8">暂无简历，请点击上方按钮上传</div></template>
+                    </div>
+                </div>
+
+                <!-- 复盘笔记页面 -->
+                <div v-else-if="currentPage === '复盘笔记'" key="复盘笔记" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-2xl font-bold text-gray-800">📝 复盘笔记</h1>
+                        <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="openNoteModal()">＋ 新建笔记</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div v-for="note in notes" :key="note.id" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-start justify-between mb-2">
+                                <h3 class="font-semibold text-gray-800">{{ note.title }}</h3>
+                                <div class="flex gap-1">
+                                    <button class="text-purple-600 hover:text-purple-800 text-sm" @click="openNoteModal(note)">✏️</button>
+                                    <button class="text-red-500 hover:text-red-700 text-sm" @click="deleteNote(note.id)">🗑</button>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400 mb-2">{{ note.date || '' }}</div>
+                            <p class="text-sm text-gray-600 whitespace-pre-line">{{ note.content }}</p>
+                        </div>
+                        <div v-if="notes.length === 0" class="col-span-full text-center text-gray-400 py-8">暂无笔记，点击上方按钮新建</div>
+                    </div>
+                </div>
+            </transition>
+
+            <!-- 编辑投递记录模态框（总览页简版） -->
+            <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
+                <div class="modal-content">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">✏️ 编辑投递记录</h2>
+                    <div class="space-y-3">
+                        <div><label class="text-xs font-medium text-gray-600">公司名称</label><input v-model="editForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：字节跳动"></div>
+                        <div><label class="text-xs font-medium text-gray-600">职位</label><input v-model="editForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：后端开发工程师"></div>
+                        <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="editForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京"></div>
+                        <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
+                    </div>
+                    <div class="flex gap-2 mt-5">
+                        <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeEditModal">取消</button>
+                        <button class="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="saveEdit">保存</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </template>
-    <template v-else>
-        <div class="text-center text-gray-400 py-6">暂无意向岗位记录</div>
-    </template>
-</div>
-</div>
-</div>
-</div>
 
-<!-- 投递记录页面 -->
-<div v-else-if="currentPage === '投递记录'" key="投递记录" class="p-4 md:p-6 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-4">
-        <h1 class="text-2xl font-bold text-gray-800">📤 投递记录</h1>
-        <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-        @click="openAddModal">＋ 新增投递</button>
-    </div>
-
-    <!-- 筛选区 -->
-    <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm">
-        <div class="flex flex-wrap gap-3 items-center">
-            <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 font-medium">🔍 公司</label>
-                <input type="text" v-model="recordFilters.company"
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 min-w-[140px]"
-                placeholder="输入公司名">
-            </div>
-            <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 font-medium">📍 地点</label>
-                <input type="text" v-model="recordFilters.location"
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 min-w-[120px]"
-                placeholder="输入城市">
-            </div>
-            <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 font-medium">📂 类别</label>
-                <select v-model="recordFilters.category"
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
-                <option value="">全部</option>
-                <option value="技术">技术</option>
-                <option value="产品">产品</option>
-                <option value="设计">设计</option>
-                <option value="运营">运营</option>
-                <option value="市场">市场</option>
-                <option value="职能">职能</option>
-                <option value="其他">其他</option>
-            </select>
-        </div>
-        <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600 font-medium">📌 状态</label>
-            <select v-model="recordFilters.status"
-            class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
-            <option value="">全部</option>
-            <option value="待投递">待投递</option>
-            <option value="已投递">已投递</option>
-            <option value="测评">测评</option>
-            <option value="笔试">笔试</option>
-            <option value="一面">一面</option>
-            <option value="二面">二面</option>
-            <option value="HR面">HR面</option>
-            <option value="终面">终面</option>
-            <option value="Offer">Offer</option>
-            <option value="拒信">拒信</option>
-            <option value="已签约">已签约</option>
-        </select>
-    </div>
-    <button class="px-3 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
-    @click="resetRecordFilters">🔄 重置</button>
-    <span class="ml-auto text-sm text-gray-500">共 {{ filteredRecordCount }} 条</span>
-</div>
-</div>
-
-<!-- 表格 -->
-<div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
-    <table class="w-full min-w-[1100px]">
-        <thead>
-            <tr class="text-left text-xs text-gray-500 font-semibold border-b border-gray-200">
-                <th class="px-3 py-3 w-10">
-                    <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="accent-purple-600">
-                </th>
-                <th class="px-3 py-3">公司</th>
-                <th class="px-3 py-3">职位</th>
-                <th class="px-3 py-3">类别</th>
-                <th class="px-3 py-3">地点</th>
-                <th class="px-3 py-3">投递日期</th>
-                <th class="px-3 py-3">当前进度</th>
-                <th class="px-3 py-3">备注</th>
-                <th class="px-3 py-3">操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            <template v-if="filteredRecords.length > 0">
-                <tr v-for="(app, i) in paginatedRecords" :key="app.id"
-                class="border-b border-gray-100 table-row-hover">
-                <td class="px-3 py-2.5">
-                    <input type="checkbox" v-model="selectedIds" :value="app.id" class="accent-purple-600">
-                </td>
-                <td class="px-3 py-2.5 font-medium text-gray-800">{{ app.company }}</td>
-                <td class="px-3 py-2.5 text-gray-600">{{ app.position }}</td>
-                <td class="px-3 py-2.5">
-                    <span v-if="app.category" class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ app.category }}</span>
-                    <span v-else class="text-xs text-gray-400">未分类</span>
-                </td>
-                <td class="px-3 py-2.5 text-gray-600">{{ app.location || '-' }}</td>
-                <td class="px-3 py-2.5 text-gray-600">{{ app.date || '-' }}</td>
-                <td class="px-3 py-2.5">
-                    <span class="tag" :class="getStatusClass(app.status)">{{ app.status || '待投递' }}</span>
-                </td>
-                <td class="px-3 py-2.5">
-                    <span class="expandable-cell cursor-pointer" :title="app.note || ''"
-                    @click="toggleExpandNote(app.id)">
-                    {{ app.note || '-' }}
-                </span>
-                <div v-if="expandedNotes.has(app.id)" class="text-xs text-gray-500 mt-1 whitespace-normal">{{ app.note }}</div>
-            </td>
-            <td class="px-3 py-2.5">
-                <div class="flex gap-1">
-                    <button class="px-2 py-1 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50 transition-colors"
-                    @click="editRecord(app.id)">✏️ 编辑</button>
-                    <button class="px-2 py-1 text-xs border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors"
-                    @click="deleteRecord(app.id)">🗑 删除</button>
+            <!-- 新增/编辑投递记录模态框（投递记录页） -->
+            <div v-if="showRecordModal" class="modal-overlay" @click.self="closeRecordModal">
+                <div class="modal-content">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ recordModalTitle }}</h2>
+                    <div class="space-y-3">
+                        <div><label class="text-xs font-medium text-gray-600">公司名称 *</label><input v-model="recordForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：字节跳动"></div>
+                        <div><label class="text-xs font-medium text-gray-600">职位 *</label><input v-model="recordForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：后端开发工程师"></div>
+                        <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="recordForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="recordForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京（多个用 / 分隔）"></div>
+                        <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><p class="text-xs text-gray-400 mt-1">如状态为"待投递"，可留空。</p></div>
+                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：负责数据平台建设..."></textarea></div>
+                        <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
+                    </div>
+                    <div class="flex gap-2 mt-5">
+                        <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeRecordModal">取消</button>
+                        <button class="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="saveRecordForm">保存</button>
+                    </div>
                 </div>
-            </td>
-        </tr>
-    </template>
-    <template v-else>
-        <tr>
-            <td colspan="9" class="px-3 py-8 text-center text-gray-400">没有匹配的记录</td>
-        </tr>
-    </template>
-</tbody>
-</table>
-</div>
-
-<!-- 分页 -->
-<div class="flex items-center justify-between mt-4 flex-wrap gap-2">
-    <div class="flex items-center gap-2">
-        <button v-if="selectedIds.length > 0"
-        class="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-        @click="batchDeleteRecords">🗑 批量删除（{{ selectedIds.length }}）</button>
-    </div>
-    <div class="flex items-center gap-2">
-        <button class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="currentRecordPage === 1" @click="currentRecordPage--">‹ 上一页</button>
-        <span class="text-sm text-gray-600">第 {{ currentRecordPage }} / {{ totalRecordPages }} 页</span>
-        <button class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="currentRecordPage === totalRecordPages" @click="currentRecordPage++">下一页 ›</button>
-    </div>
-</div>
-</div>
-</transition>
-
-<!-- 添加/编辑模态框 -->
-<div v-if="showRecordModal" class="modal-overlay" @click.self="closeRecordModal">
-    <div class="modal-content">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ recordModalTitle }}</h2>
-        <div class="space-y-3">
-            <div>
-                <label class="text-xs font-medium text-gray-600">公司名称 *</label>
-                <input v-model="recordForm.company" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                placeholder="例如：字节跳动">
             </div>
-            <div>
-                <label class="text-xs font-medium text-gray-600">职位 *</label>
-                <input v-model="recordForm.position" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                placeholder="例如：后端开发工程师">
+
+            <!-- 笔记编辑模态框 -->
+            <div v-if="showNoteModal" class="modal-overlay" @click.self="closeNoteModal">
+                <div class="modal-content">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ noteForm.id ? '编辑笔记' : '新建笔记' }}</h2>
+                    <div class="space-y-3">
+                        <div><label class="text-xs font-medium text-gray-600">标题 *</label><input v-model="noteForm.title" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="笔记标题"></div>
+                        <div><label class="text-xs font-medium text-gray-600">日期</label><input v-model="noteForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div><label class="text-xs font-medium text-gray-600">内容</label><textarea v-model="noteForm.content" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="记录复盘内容..."></textarea></div>
+                    </div>
+                    <div class="flex gap-2 mt-5">
+                        <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeNoteModal">取消</button>
+                        <button class="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="saveNote">保存</button>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="text-xs font-medium text-gray-600">岗位类别</label>
-                <select v-model="recordForm.category"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
-                <option value="">请选择</option>
-                <option value="技术">技术</option>
-                <option value="产品">产品</option>
-                <option value="设计">设计</option>
-                <option value="运营">运营</option>
-                <option value="市场">市场</option>
-                <option value="职能">职能</option>
-                <option value="其他">其他</option>
-            </select>
-        </div>
-        <div>
-            <label class="text-xs font-medium text-gray-600">工作地点</label>
-            <input v-model="recordForm.location" type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-            placeholder="例如：北京（多个用 / 分隔）">
-        </div>
-        <div>
-            <label class="text-xs font-medium text-gray-600">投递日期</label>
-            <input v-model="recordForm.date" type="date"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
-            <p class="text-xs text-gray-400 mt-1">如状态为"待投递"，可留空。</p>
-        </div>
-        <div>
-            <label class="text-xs font-medium text-gray-600">当前进度</label>
-            <select v-model="recordForm.status"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
-            <option value="待投递">待投递</option>
-            <option value="已投递">已投递</option>
-            <option value="测评">测评</option>
-            <option value="笔试">笔试</option>
-            <option value="一面">一面</option>
-            <option value="二面">二面</option>
-            <option value="HR面">HR面</option>
-            <option value="终面">终面</option>
-            <option value="Offer">Offer</option>
-            <option value="拒信">拒信</option>
-            <option value="已签约">已签约</option>
-        </select>
+        </main>
     </div>
-    <div>
-        <label class="text-xs font-medium text-gray-600">岗位描述</label>
-        <textarea v-model="recordForm.jobDescription" rows="3"
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-        placeholder="例如：负责数据平台建设..."></textarea>
-    </div>
-    <div>
-        <label class="text-xs font-medium text-gray-600">备注</label>
-        <textarea v-model="recordForm.note" rows="2"
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-        placeholder="例如：笔试时间、HR联系方式..."></textarea>
-    </div>
-</div>
-<div class="flex gap-2 mt-5">
-    <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-    @click="closeRecordModal">取消</button>
-    <button class="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-    @click="saveRecordForm">保存</button>
-</div>
-</div>
-</div>
-</main>
-</div>
 
-<script>
-    const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+    <script>
+        const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
-    createApp({
-        setup() {
-            // ---------- 数据 ----------
-            const applications = ref([]);
-            const focusIds = reactive(new Set());
-            const showEditModal = ref(false);
-            const showRecordModal = ref(false);
-            const recordModalTitle = ref('添加投递');
-            const currentPage = ref('总览');
-            const expandedNotes = reactive(new Set());
+        // ---------- IndexedDB 常量与函数 ----------
+        const DB_NAME = 'QiuzhaoAttachments';
+        const DB_STORE = 'attachments';
+        let db = null;
 
-            const editForm = reactive({
-                id: '',
-                company: '',
-                position: '',
-                category: '',
-                location: '',
-                date: '',
-                status: '待投递',
-                note: ''
-            });
-
-            const recordForm = reactive({
-                id: '',
-                company: '',
-                position: '',
-                category: '',
-                location: '',
-                date: '',
-                status: '待投递',
-                jobDescription: '',
-                note: ''
-            });
-
-            const recordFilters = reactive({
-                company: '',
-                location: '',
-                category: '',
-                status: ''
-            });
-
-            const selectedIds = ref([]);
-            const selectAll = ref(false);
-            const currentRecordPage = ref(1);
-            const pageSize = 10;
-
-            // ---------- 侧边栏 ----------
-            const sidebarItems = ref([
-                { name: '总览', icon: '📊', badge: 0, active: true },
-                { name: '投递记录', icon: '📤', badge: 0, active: false },
-                { name: '简历管理', icon: '📄', badge: 0, active: false },
-                { name: '复盘笔记', icon: '📝', badge: 0, active: false },
-                { name: '企业库', icon: '🏢', badge: 0, active: false },
-                { name: 'AI助手', icon: '🤖', badge: 0, active: false },
-            ]);
-
-            const currentDate = computed(() => {
-                const d = new Date();
-                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            });
-
-            const weekdayCN = computed(() => {
-                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-                return weekdays[new Date().getDay()];
-            });
-
-            const userInitial = computed(() => '求');
-
-            // ---------- 筛选后的记录 ----------
-            const filteredRecords = computed(() => {
-                const { company, location, category, status } = recordFilters;
-                return applications.value.filter(app => {
-                    if (company && !app.company.toLowerCase().includes(company.toLowerCase())) return false;
-                    if (location && !(app.location || '').toLowerCase().includes(location.toLowerCase())) return false;
-                    if (category && app.category !== category) return false;
-                    if (status && app.status !== status) return false;
-                    return true;
-                });
-            });
-
-            const filteredRecordCount = computed(() => filteredRecords.value.length);
-
-            const totalRecordPages = computed(() => {
-                return Math.max(1, Math.ceil(filteredRecords.value.length / pageSize));
-            });
-
-            const paginatedRecords = computed(() => {
-                const start = (currentRecordPage.value - 1) * pageSize;
-                return filteredRecords.value.slice(start, start + pageSize);
-            });
-
-            watch(recordFilters, () => {
-                currentRecordPage.value = 1;
-            });
-
-            // ---------- 漏斗统计 ----------
-            const funnelStats = computed(() => {
-                const total = applications.value.filter(a => a.status !== '待投递').length;
-                const assessment = applications.value.filter(a => ['测评', '笔试'].includes(a.status)).length;
-                const interviewing = applications.value.filter(a => ['一面', '二面', 'HR面', '终面'].includes(a.status))
-                    .length;
-                const offer = applications.value.filter(a => a.status === 'Offer').length;
-                const rejected = applications.value.filter(a => a.status === '拒信').length;
-                const applied = total;
-
-                const safeRate = (val) => total > 0 ? Math.round(val / total * 100) : 0;
-
-                return {
-                    applied,
-                    assessment,
-                    interviewing,
-                    offer,
-                    rejected,
-                    assessmentRate: safeRate(assessment),
-                    interviewRate: safeRate(interviewing),
-                    offerRate: safeRate(offer),
-                    rejectRate: safeRate(rejected),
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                if (db) return resolve(db);
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains(DB_STORE)) {
+                        database.createObjectStore(DB_STORE, { keyPath: 'id' });
+                    }
                 };
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onerror = (e) => reject(e.target.error);
             });
+        }
 
-            // ---------- 近期面试 ----------
-            const recentInterviews = computed(() => {
-                const interviewStatuses = ['一面', '二面', 'HR面', '终面', 'AI面'];
-                const results = [];
-                applications.value.forEach(app => {
-                    if (interviewStatuses.includes(app.status)) {
-                        results.push({
-                            id: app.id,
-                            company: app.company,
-                            position: app.position,
-                            status: app.status,
-                            timeLabel: app.date || '待定'
-                        });
-                    }
-                    if (app.progressHistory && app.progressHistory.length > 0) {
-                        app.progressHistory.forEach(h => {
-                            if (interviewStatuses.includes(h.status) && h.date) {
-                                results.push({
-                                    id: app.id,
-                                    company: app.company,
-                                    position: app.position,
-                                    status: h.status,
-                                    timeLabel: h.date
-                                });
-                            }
-                        });
-                    }
-                });
-                return results.slice(0, 6);
-            });
+        function attachmentId(recordId, fileName) { return `${recordId}_${fileName}`; }
 
-            // ---------- 最近投递 ----------
-            const recentApplications = computed(() => {
-                return applications.value
-                    .filter(a => a.status !== '待投递')
-                    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-                    .slice(0, 10)
-                    .map(a => ({
-                        id: a.id,
-                        company: a.company,
-                        position: a.position,
-                        status: a.status,
-                        date: a.date || '-'
-                    }));
-            });
-
-            // ---------- 预警 ----------
-            const upcomingAlerts = computed(() => {
-                const alerts = [];
-                applications.value.forEach(app => {
-                    if (app.progressHistory && app.progressHistory.length > 0) {
-                        app.progressHistory.forEach(h => {
-                            if (h.date && ['一面', '二面', 'HR面', '终面', '测评', '笔试'].includes(h
-                                .status)) {
-                                const d = new Date(h.date);
-                                const now = new Date();
-                                const diff = d - now;
-                                if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
-                                    alerts.push({
-                                        text: `${h.status} ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${app.company} ${app.position}`,
-                                        urgent: diff < 24 * 60 * 60 * 1000,
-                                    });
-                                }
-                            }
-                        });
-                    }
-                });
-                return alerts.slice(0, 3);
-            });
-
-            // ---------- 重点关注 ----------
-            const focusRecord = computed(() => {
-                if (applications.value.length === 0) return null;
-                const focused = applications.value.find(a => focusIds.has(a.id));
-                if (focused) return focused;
-                return applications.value.find(a => a.status !== '待投递') || applications.value[0] || null;
-            });
-
-            function isFocused(id) { return focusIds.has(id); }
-
-            function toggleFocus(id) {
-                if (focusIds.has(id)) focusIds.delete(id);
-                else focusIds.add(id);
-                focusIds.forEach(f => { /* trigger reactivity */ });
-            }
-
-            // ---------- 意向岗位 ----------
-            const intentPositions = computed(() => {
-                return applications.value
-                    .filter(a => ['待投递', '已投递'].includes(a.status))
-                    .slice(0, 8)
-                    .map((a, i) => ({
-                        id: a.id,
-                        company: a.company,
-                        position: a.position,
-                        priority: i % 3 === 0 ? '高优先' : '中优先',
-                    }));
-            });
-
-            // ---------- 状态标签 ----------
-            function getStatusClass(status) {
-                const map = {
-                    '待投递': 'bg-gray-100 text-gray-600',
-                    '已投递': 'bg-blue-100 text-blue-700',
-                    '测评': 'bg-blue-100 text-blue-700',
-                    '笔试': 'bg-purple-100 text-purple-700',
-                    'AI面': 'bg-green-100 text-green-700',
-                    '一面': 'bg-yellow-100 text-yellow-700',
-                    '二面': 'bg-orange-100 text-orange-700',
-                    'HR面': 'bg-pink-100 text-pink-700',
-                    '终面': 'bg-teal-100 text-teal-700',
-                    'Offer': 'bg-green-100 text-green-700',
-                    '拒信': 'bg-red-100 text-red-700',
-                    '已签约': 'bg-indigo-100 text-indigo-700',
-                };
-                return map[status] || 'bg-gray-100 text-gray-600';
-            }
-
-            // ---------- 侧边栏切换 ----------
-            function switchSidebar(item) {
-                if (item.name === '简历管理' || item.name === '复盘笔记' || item.name === '企业库' || item.name ===
-                    'AI助手') {
-                    alert(`「${item.name}」页面暂未开放，敬请期待！`);
-                    return;
-                }
-                sidebarItems.value.forEach(i => i.active = false);
-                item.active = true;
-                currentPage.value = item.name;
-            }
-
-            // ---------- 编辑（总览页简版） ----------
-            function editRecord(id) {
-                const app = applications.value.find(a => a.id === id);
-                if (!app) return;
-                editForm.id = app.id;
-                editForm.company = app.company;
-                editForm.position = app.position;
-                editForm.category = app.category || '';
-                editForm.location = app.location || '';
-                editForm.date = app.date || '';
-                editForm.status = app.status || '待投递';
-                editForm.note = app.note || '';
-                showEditModal.value = true;
-            }
-
-            function closeEditModal() { showEditModal.value = false; }
-
-            function saveEdit() {
-                const idx = applications.value.findIndex(a => a.id === editForm.id);
-                if (idx !== -1) {
-                    applications.value[idx] = {
-                        ...applications.value[idx],
-                        company: editForm.company.trim(),
-                        position: editForm.position.trim(),
-                        category: editForm.category,
-                        location: editForm.location.trim(),
-                        date: editForm.date,
-                        status: editForm.status,
-                        note: editForm.note.trim(),
+        async function saveAttachment(recordId, file, extraMeta = {}) {
+            const database = await openDB();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const tx = database.transaction(DB_STORE, 'readwrite');
+                    const store = tx.objectStore(DB_STORE);
+                    const record = {
+                        id: attachmentId(recordId, file.name),
+                        recordId: recordId,
+                        name: file.name,
+                        type: file.type,
+                        data: reader.result,
+                        size: file.size,
+                        ...extraMeta
                     };
-                    localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
+                    store.put(record);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e.target.error);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function deleteAttachment(recordId, fileName) {
+            const database = await openDB();
+            const tx = database.transaction(DB_STORE, 'readwrite');
+            const store = tx.objectStore(DB_STORE);
+            store.delete(attachmentId(recordId, fileName));
+            return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
+        }
+
+        async function getAttachmentsByRecord(recordId) {
+            const database = await openDB();
+            const tx = database.transaction(DB_STORE, 'readonly');
+            const store = tx.objectStore(DB_STORE);
+            const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
+            return all.filter(a => a.recordId === recordId).map(a => ({ name: a.name, type: a.type, size: a.size, date: a.date || '' }));
+        }
+
+        async function downloadAttachment(recordId, fileName) {
+            const database = await openDB();
+            const tx = database.transaction(DB_STORE, 'readonly');
+            const store = tx.objectStore(DB_STORE);
+            const request = store.get(attachmentId(recordId, fileName));
+            request.onsuccess = () => {
+                const record = request.result;
+                if (record) {
+                    const blob = new Blob([record.data], { type: record.type });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = record.name;
+                    a.click();
+                    URL.revokeObjectURL(url);
                 }
-                closeEditModal();
-                loadData();
-            }
+            };
+            request.onerror = (e) => alert('下载失败：' + e.target.error);
+        }
 
-            // ---------- 投递记录页面操作 ----------
-            function openAddModal() {
-                recordForm.id = '';
-                recordForm.company = '';
-                recordForm.position = '';
-                recordForm.category = '';
-                recordForm.location = '';
-                recordForm.date = '';
-                recordForm.status = '待投递';
-                recordForm.jobDescription = '';
-                recordForm.note = '';
-                recordModalTitle.value = '新增投递';
-                showRecordModal.value = true;
-            }
+        async function deleteAttachmentsByRecord(recordId) {
+            const database = await openDB();
+            const tx = database.transaction(DB_STORE, 'readwrite');
+            const store = tx.objectStore(DB_STORE);
+            const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
+            const toDelete = all.filter(a => a.recordId === recordId);
+            toDelete.forEach(a => store.delete(a.id));
+            return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
+        }
 
-            function openEditModalFromRecord(id) {
-                const app = applications.value.find(a => a.id === id);
-                if (!app) return;
-                recordForm.id = app.id;
-                recordForm.company = app.company;
-                recordForm.position = app.position;
-                recordForm.category = app.category || '';
-                recordForm.location = app.location || '';
-                recordForm.date = app.date || '';
-                recordForm.status = app.status || '待投递';
-                recordForm.jobDescription = app.jobDescription || '';
-                recordForm.note = app.note || '';
-                recordModalTitle.value = '编辑投递';
-                showRecordModal.value = true;
-            }
+        createApp({
+            setup() {
+                // ---------- 数据 ----------
+                const applications = ref([]);
+                const focusIds = reactive(new Set());
+                const showEditModal = ref(false);
+                const showRecordModal = ref(false);
+                const recordModalTitle = ref('添加投递');
+                const currentPage = ref('总览');
+                const expandedNotes = reactive(new Set());
 
-            function closeRecordModal() { showRecordModal.value = false; }
+                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '' });
+                const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
+                const selectedIds = ref([]);
+                const selectAll = ref(false);
+                const currentRecordPage = ref(1);
+                const pageSize = 10;
 
-            function saveRecordForm() {
-                if (!recordForm.company.trim() || !recordForm.position.trim()) {
-                    alert('公司名称和职位不能为空');
-                    return;
+                // 简历管理
+                const resumeList = ref([]);
+                const resumeInput = ref(null);
+                // 复盘笔记
+                const notes = ref([]);
+                const showNoteModal = ref(false);
+                const noteForm = reactive({ id: '', title: '', content: '', date: '' });
+
+                const sidebarItems = ref([
+                    { name: '总览', icon: '📊', badge: 0, active: true },
+                    { name: '投递记录', icon: '📤', badge: 0, active: false },
+                    { name: '简历管理', icon: '📄', badge: 0, active: false },
+                    { name: '复盘笔记', icon: '📝', badge: 0, active: false },
+                    { name: '企业库', icon: '🏢', badge: 0, active: false },
+                ]);
+
+                const currentDate = computed(() => {
+                    const d = new Date();
+                    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                });
+                const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
+                const userInitial = computed(() => '求');
+
+                // ---------- 投递记录筛选 ----------
+                const filteredRecords = computed(() => {
+                    const { company, location, category, status } = recordFilters;
+                    return applications.value.filter(app => {
+                        if (company && !app.company.toLowerCase().includes(company.toLowerCase())) return false;
+                        if (location && !(app.location || '').toLowerCase().includes(location.toLowerCase())) return false;
+                        if (category && app.category !== category) return false;
+                        if (status && app.status !== status) return false;
+                        return true;
+                    });
+                });
+                const filteredRecordCount = computed(() => filteredRecords.value.length);
+                const totalRecordPages = computed(() => Math.max(1, Math.ceil(filteredRecords.value.length / pageSize)));
+                const paginatedRecords = computed(() => {
+                    const start = (currentRecordPage.value - 1) * pageSize;
+                    return filteredRecords.value.slice(start, start + pageSize);
+                });
+                watch(recordFilters, () => { currentRecordPage.value = 1; });
+
+                // ---------- 漏斗统计 ----------
+                const funnelStats = computed(() => {
+                    const total = applications.value.filter(a => a.status !== '待投递').length;
+                    const assessment = applications.value.filter(a => ['测评','笔试'].includes(a.status)).length;
+                    const interviewing = applications.value.filter(a => ['一面','二面','HR面','终面'].includes(a.status)).length;
+                    const offer = applications.value.filter(a => a.status === 'Offer').length;
+                    const rejected = applications.value.filter(a => a.status === '拒信').length;
+                    const applied = total;
+                    const safeRate = (val) => total > 0 ? Math.round(val / total * 100) : 0;
+                    return { applied, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
+                });
+
+                // ---------- 近期面试 ----------
+                const recentInterviews = computed(() => {
+                    const interviewStatuses = ['一面','二面','HR面','终面','AI面'];
+                    const results = [];
+                    applications.value.forEach(app => {
+                        if (interviewStatuses.includes(app.status)) {
+                            results.push({ id: app.id, company: app.company, position: app.position, status: app.status, timeLabel: app.date || '待定' });
+                        }
+                        if (app.progressHistory && app.progressHistory.length > 0) {
+                            app.progressHistory.forEach(h => {
+                                if (interviewStatuses.includes(h.status) && h.date) {
+                                    results.push({ id: app.id, company: app.company, position: app.position, status: h.status, timeLabel: h.date });
+                                }
+                            });
+                        }
+                    });
+                    return results.slice(0, 6);
+                });
+
+                // ---------- 最近投递 ----------
+                const recentApplications = computed(() => {
+                    return applications.value.filter(a => a.status !== '待投递')
+                        .sort((a,b) => (b.date || '').localeCompare(a.date || ''))
+                        .slice(0, 10)
+                        .map(a => ({ id: a.id, company: a.company, position: a.position, status: a.status, date: a.date || '-' }));
+                });
+
+                // ---------- 预警 ----------
+                const upcomingAlerts = computed(() => {
+                    const alerts = [];
+                    applications.value.forEach(app => {
+                        if (app.progressHistory && app.progressHistory.length > 0) {
+                            app.progressHistory.forEach(h => {
+                                if (h.date && ['一面','二面','HR面','终面','测评','笔试'].includes(h.status)) {
+                                    const d = new Date(h.date);
+                                    const now = new Date();
+                                    const diff = d - now;
+                                    if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
+                                        alerts.push({
+                                            text: `${h.status} ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${app.company} ${app.position}`,
+                                            urgent: diff < 24 * 60 * 60 * 1000,
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    return alerts.slice(0, 3);
+                });
+
+                // ---------- 重点关注 ----------
+                const focusRecord = computed(() => {
+                    if (applications.value.length === 0) return null;
+                    const focused = applications.value.find(a => focusIds.has(a.id));
+                    if (focused) return focused;
+                    return applications.value.find(a => a.status !== '待投递') || applications.value[0] || null;
+                });
+                function isFocused(id) { return focusIds.has(id); }
+                function toggleFocus(id) {
+                    if (focusIds.has(id)) focusIds.delete(id);
+                    else focusIds.add(id);
+                    // 触发响应式更新
+                    applications.value = [...applications.value];
                 }
-                if (recordForm.id) {
-                    const idx = applications.value.findIndex(a => a.id === recordForm.id);
+
+                // ---------- 意向岗位 ----------
+                const intentPositions = computed(() => {
+                    return applications.value.filter(a => ['待投递','已投递'].includes(a.status))
+                        .slice(0, 8)
+                        .map((a, i) => ({ id: a.id, company: a.company, position: a.position, priority: i % 3 === 0 ? '高优先' : '中优先' }));
+                });
+
+                // ---------- 状态标签颜色 ----------
+                function getStatusClass(status) {
+                    const map = {
+                        '待投递': 'bg-gray-100 text-gray-600',
+                        '已投递': 'bg-blue-100 text-blue-700',
+                        '测评': 'bg-blue-100 text-blue-700',
+                        '笔试': 'bg-purple-100 text-purple-700',
+                        'AI面': 'bg-green-100 text-green-700',
+                        '一面': 'bg-yellow-100 text-yellow-700',
+                        '二面': 'bg-orange-100 text-orange-700',
+                        'HR面': 'bg-pink-100 text-pink-700',
+                        '终面': 'bg-teal-100 text-teal-700',
+                        'Offer': 'bg-green-100 text-green-700',
+                        '拒信': 'bg-red-100 text-red-700',
+                        '已签约': 'bg-indigo-100 text-indigo-700',
+                    };
+                    return map[status] || 'bg-gray-100 text-gray-600';
+                }
+
+                // ---------- 侧边栏切换 ----------
+                function switchSidebar(item) {
+                    if (item.name === '企业库') {
+                        alert('「企业库」页面暂未开放，敬请期待！');
+                        return;
+                    }
+                    sidebarItems.value.forEach(i => i.active = false);
+                    item.active = true;
+                    currentPage.value = item.name;
+                }
+
+                // ---------- 编辑（总览页简版） ----------
+                function editRecord(id) {
+                    const app = applications.value.find(a => a.id === id);
+                    if (!app) return;
+                    editForm.id = app.id;
+                    editForm.company = app.company;
+                    editForm.position = app.position;
+                    editForm.category = app.category || '';
+                    editForm.location = app.location || '';
+                    editForm.date = app.date || '';
+                    editForm.status = app.status || '待投递';
+                    editForm.note = app.note || '';
+                    showEditModal.value = true;
+                }
+                function closeEditModal() { showEditModal.value = false; }
+                function saveEdit() {
+                    const idx = applications.value.findIndex(a => a.id === editForm.id);
                     if (idx !== -1) {
                         applications.value[idx] = {
                             ...applications.value[idx],
+                            company: editForm.company.trim(),
+                            position: editForm.position.trim(),
+                            category: editForm.category,
+                            location: editForm.location.trim(),
+                            date: editForm.date,
+                            status: editForm.status,
+                            note: editForm.note.trim(),
+                        };
+                        localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
+                    }
+                    closeEditModal();
+                    loadData();
+                }
+
+                // ---------- 投递记录页面操作 ----------
+                function openAddModal() {
+                    recordForm.id = '';
+                    recordForm.company = '';
+                    recordForm.position = '';
+                    recordForm.category = '';
+                    recordForm.location = '';
+                    recordForm.date = '';
+                    recordForm.status = '待投递';
+                    recordForm.jobDescription = '';
+                    recordForm.note = '';
+                    recordModalTitle.value = '新增投递';
+                    showRecordModal.value = true;
+                }
+                function openEditModalFromRecord(id) {
+                    const app = applications.value.find(a => a.id === id);
+                    if (!app) return;
+                    recordForm.id = app.id;
+                    recordForm.company = app.company;
+                    recordForm.position = app.position;
+                    recordForm.category = app.category || '';
+                    recordForm.location = app.location || '';
+                    recordForm.date = app.date || '';
+                    recordForm.status = app.status || '待投递';
+                    recordForm.jobDescription = app.jobDescription || '';
+                    recordForm.note = app.note || '';
+                    recordModalTitle.value = '编辑投递';
+                    showRecordModal.value = true;
+                }
+                function closeRecordModal() { showRecordModal.value = false; }
+                function saveRecordForm() {
+                    if (!recordForm.company.trim() || !recordForm.position.trim()) {
+                        alert('公司名称和职位不能为空');
+                        return;
+                    }
+                    if (recordForm.id) {
+                        const idx = applications.value.findIndex(a => a.id === recordForm.id);
+                        if (idx !== -1) {
+                            applications.value[idx] = {
+                                ...applications.value[idx],
+                                company: recordForm.company.trim(),
+                                position: recordForm.position.trim(),
+                                category: recordForm.category,
+                                location: recordForm.location.trim(),
+                                date: recordForm.date,
+                                status: recordForm.status,
+                                jobDescription: recordForm.jobDescription.trim(),
+                                note: recordForm.note.trim(),
+                            };
+                        }
+                    } else {
+                        applications.value.unshift({
+                            id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
                             company: recordForm.company.trim(),
                             position: recordForm.position.trim(),
                             category: recordForm.category,
@@ -995,145 +805,171 @@
                             status: recordForm.status,
                             jobDescription: recordForm.jobDescription.trim(),
                             note: recordForm.note.trim(),
-                        };
+                            progressHistory: [],
+                        });
                     }
-                } else {
-                    applications.value.unshift({
-                        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                        company: recordForm.company.trim(),
-                        position: recordForm.position.trim(),
-                        category: recordForm.category,
-                        location: recordForm.location.trim(),
-                        date: recordForm.date,
-                        status: recordForm.status,
-                        jobDescription: recordForm.jobDescription.trim(),
-                        note: recordForm.note.trim(),
-                        progressHistory: [],
-                    });
+                    localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
+                    closeRecordModal();
+                    loadData();
                 }
-                localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
-                closeRecordModal();
-                loadData();
-            }
-
-            async function deleteRecord(id) {
-                if (!confirm('确定要删除这条记录吗？')) return;
-                applications.value = applications.value.filter(a => a.id !== id);
-                localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
-                loadData();
-            }
-
-            function toggleSelectAll() {
-                if (selectAll.value) {
-                    selectedIds.value = filteredRecords.value.map(a => a.id);
-                } else {
+                async function deleteRecord(id) {
+                    if (!confirm('确定要删除这条记录吗？')) return;
+                    await deleteAttachmentsByRecord(id);
+                    applications.value = applications.value.filter(a => a.id !== id);
+                    localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
+                    loadData();
+                }
+                function toggleSelectAll() {
+                    if (selectAll.value) {
+                        selectedIds.value = filteredRecords.value.map(a => a.id);
+                    } else {
+                        selectedIds.value = [];
+                    }
+                }
+                async function batchDeleteRecords() {
+                    if (selectedIds.value.length === 0) { alert('请至少选择一条记录'); return; }
+                    if (!confirm(`确定要删除选中的 ${selectedIds.value.length} 条记录吗？`)) return;
+                    for (const id of selectedIds.value) {
+                        await deleteAttachmentsByRecord(id);
+                    }
+                    applications.value = applications.value.filter(a => !selectedIds.value.includes(a.id));
                     selectedIds.value = [];
+                    selectAll.value = false;
+                    localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
+                    loadData();
                 }
-            }
-
-            function batchDeleteRecords() {
-                if (selectedIds.value.length === 0) {
-                    alert('请至少选择一条记录');
-                    return;
+                function resetRecordFilters() {
+                    recordFilters.company = '';
+                    recordFilters.location = '';
+                    recordFilters.category = '';
+                    recordFilters.status = '';
                 }
-                if (!confirm(`确定要删除选中的 ${selectedIds.value.length} 条记录吗？`)) return;
-                applications.value = applications.value.filter(a => !selectedIds.value.includes(a.id));
-                selectedIds.value = [];
-                selectAll.value = false;
-                localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
-                loadData();
-            }
-
-            function resetRecordFilters() {
-                recordFilters.company = '';
-                recordFilters.location = '';
-                recordFilters.category = '';
-                recordFilters.status = '';
-            }
-
-            function toggleExpandNote(id) {
-                if (expandedNotes.has(id)) expandedNotes.delete(id);
-                else expandedNotes.add(id);
-            }
-
-            // ---------- 加载数据 ----------
-            function loadData() {
-                const stored = localStorage.getItem('qiuzhao_applications_v2');
-                if (stored) {
-                    try { applications.value = JSON.parse(stored); } catch (e) { applications.value = []; }
+                function toggleExpandNote(id) {
+                    if (expandedNotes.has(id)) expandedNotes.delete(id);
+                    else expandedNotes.add(id);
                 }
-                if (!applications.value || !Array.isArray(applications.value)) {
-                    applications.value = [];
+
+                // ---------- 简历管理 ----------
+                async function loadResumes() {
+                    try {
+                        const resumes = await getAttachmentsByRecord('__resume__');
+                        resumeList.value = resumes;
+                        sidebarItems.value[2].badge = resumes.length;
+                    } catch(e) { console.error(e); }
                 }
-                applications.value = applications.value.map(a => ({
-                    ...a,
-                    category: a.category || '',
-                    status: a.status || '待投递',
-                    location: a.location || '',
-                    note: a.note || '',
-                    jobDescription: a.jobDescription || '',
-                    progressHistory: a.progressHistory || [],
-                }));
-                // 角标
-                const pendingCount = applications.value.filter(a => a.status === '待投递').length;
-                const interviewCount = applications.value.filter(a => ['一面', '二面', 'HR面', '终面'].includes(a
-                    .status)).length;
-                sidebarItems.value[1].badge = applications.value.length;
-                sidebarItems.value[3].badge = interviewCount;
-                sidebarItems.value[2].badge = pendingCount;
+                function triggerResumeUpload() {
+                    if (resumeInput.value) resumeInput.value.click();
+                }
+                async function uploadResume(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    await saveAttachment('__resume__', file, { date: new Date().toISOString() });
+                    event.target.value = '';
+                    loadResumes();
+                }
+                function downloadResume(fileName) {
+                    downloadAttachment('__resume__', fileName);
+                }
+                async function deleteResume(fileName) {
+                    if (!confirm('确定删除该简历吗？')) return;
+                    await deleteAttachment('__resume__', fileName);
+                    loadResumes();
+                }
+
+                // ---------- 复盘笔记 ----------
+                function loadNotes() {
+                    const stored = localStorage.getItem('qiuzhao_review_notes');
+                    if (stored) {
+                        try { notes.value = JSON.parse(stored); } catch(e) { notes.value = []; }
+                    } else { notes.value = []; }
+                    sidebarItems.value[3].badge = notes.value.length;
+                }
+                function openNoteModal(note = null) {
+                    if (note) {
+                        noteForm.id = note.id;
+                        noteForm.title = note.title;
+                        noteForm.content = note.content;
+                        noteForm.date = note.date || '';
+                    } else {
+                        noteForm.id = '';
+                        noteForm.title = '';
+                        noteForm.content = '';
+                        noteForm.date = new Date().toISOString().slice(0,10);
+                    }
+                    showNoteModal.value = true;
+                }
+                function closeNoteModal() { showNoteModal.value = false; }
+                function saveNote() {
+                    if (!noteForm.title.trim()) { alert('标题不能为空'); return; }
+                    const note = {
+                        id: noteForm.id || Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+                        title: noteForm.title.trim(),
+                        content: noteForm.content.trim(),
+                        date: noteForm.date || new Date().toISOString().slice(0,10)
+                    };
+                    if (noteForm.id) {
+                        const idx = notes.value.findIndex(n => n.id === note.id);
+                        if (idx !== -1) notes.value[idx] = note;
+                    } else {
+                        notes.value.unshift(note);
+                    }
+                    localStorage.setItem('qiuzhao_review_notes', JSON.stringify(notes.value));
+                    closeNoteModal();
+                    loadNotes();
+                }
+                function deleteNote(id) {
+                    if (!confirm('确定删除该笔记吗？')) return;
+                    notes.value = notes.value.filter(n => n.id !== id);
+                    localStorage.setItem('qiuzhao_review_notes', JSON.stringify(notes.value));
+                    loadNotes();
+                }
+
+                // ---------- 加载数据 ----------
+                function loadData() {
+                    const stored = localStorage.getItem('qiuzhao_applications_v2');
+                    if (stored) {
+                        try { applications.value = JSON.parse(stored); } catch(e) { applications.value = []; }
+                    }
+                    if (!applications.value || !Array.isArray(applications.value)) applications.value = [];
+                    applications.value = applications.value.map(a => ({
+                        ...a,
+                        category: a.category || '',
+                        status: a.status || '待投递',
+                        location: a.location || '',
+                        note: a.note || '',
+                        jobDescription: a.jobDescription || '',
+                        progressHistory: a.progressHistory || [],
+                    }));
+                    sidebarItems.value[1].badge = applications.value.length;
+                }
+
+                onMounted(() => {
+                    loadData();
+                    loadResumes();
+                    loadNotes();
+                });
+
+                return {
+                    applications, currentPage, sidebarItems,
+                    currentDate, weekdayCN, userInitial,
+                    funnelStats, recentInterviews, recentApplications,
+                    upcomingAlerts, focusRecord, intentPositions,
+                    showEditModal, showRecordModal, recordModalTitle,
+                    editForm, recordForm, recordFilters,
+                    filteredRecords, filteredRecordCount, paginatedRecords, totalRecordPages, currentRecordPage,
+                    selectedIds, selectAll, expandedNotes,
+                    resumeList, resumeInput, notes, showNoteModal, noteForm,
+                    getStatusClass, switchSidebar,
+                    editRecord, closeEditModal, saveEdit,
+                    openAddModal, openEditModalFromRecord, closeRecordModal, saveRecordForm,
+                    deleteRecord, toggleFocus, isFocused,
+                    toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
+                    triggerResumeUpload, uploadResume, downloadResume, deleteResume,
+                    openNoteModal, closeNoteModal, saveNote, deleteNote,
+                    loadData
+                };
             }
-
-            onMounted(() => {
-                loadData();
-            });
-
-            return {
-                applications,
-                currentPage,
-                sidebarItems,
-                currentDate,
-                weekdayCN,
-                userInitial,
-                funnelStats,
-                recentInterviews,
-                recentApplications,
-                upcomingAlerts,
-                focusRecord,
-                intentPositions,
-                showEditModal,
-                showRecordModal,
-                recordModalTitle,
-                editForm,
-                recordForm,
-                recordFilters,
-                filteredRecords,
-                filteredRecordCount,
-                paginatedRecords,
-                totalRecordPages,
-                currentRecordPage,
-                selectedIds,
-                selectAll,
-                expandedNotes,
-                getStatusClass,
-                switchSidebar,
-                editRecord,
-                closeEditModal,
-                saveEdit,
-                openAddModal,
-                openEditModalFromRecord,
-                closeRecordModal,
-                saveRecordForm,
-                deleteRecord,
-                toggleFocus,
-                isFocused,
-                toggleSelectAll,
-                batchDeleteRecords,
-                resetRecordFilters,
-                toggleExpandNote,
-                loadData,
-            };
-        }
-    }).mount('#app');
-</script>
+        }).mount('#app');
+    </script>
 </body>
 </html>
