@@ -22,10 +22,8 @@
         .stat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
         .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
-        .sidebar-badge { background: #ef4444; color: white; font-size: 11px; padding: 1px 7px; border-radius: 50px; font-weight: 600; flex-shrink: 0; }
         .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
         .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
-        .attachment-link { color: #1e3c72; cursor: pointer; text-decoration: underline; }
         .attachment-list { list-style: none; margin-top: 8px; padding-left: 0; }
         .attachment-list li { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
         .attachment-list .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
@@ -34,10 +32,8 @@
         .progress-line-item select, .progress-line-item input { min-width: 120px; }
         .progress-line-item button { padding: 4px 10px; }
         .timeline-date { font-size: 12px; color: #6b7280; margin-left: 5px; }
-        .timeline-tooltip { cursor: help; }
         @media (max-width: 1024px) { .funnel-container { flex-wrap: wrap; gap: 8px; } .funnel-arrow { display: none; } .funnel-card { min-width: 45%; } }
-        @media (max-width: 768px) { .sidebar { width: 60px !important; } .sidebar-text { display: none; } .sidebar-badge { display: none; } .main-content { margin-left: 60px !important; } .funnel-card { min-width: 100%; } }
-        @media (max-width: 480px) { .grid-cols-2-sm { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { width: 60px !important; } .sidebar-text { display: none; } .main-content { margin-left: 60px !important; } .funnel-card { min-width: 100%; } }
         .table-row-hover:hover { background: #fafafa; }
         .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
@@ -60,13 +56,12 @@
             </div>
         </header>
 
-        <!-- 侧边栏（已移除红点角标） -->
+        <!-- 侧边栏 -->
         <aside class="fixed left-0 top-14 bottom-0 z-40 sidebar overflow-y-auto transition-all duration-200" style="background: #5b21b6; width: 200px;">
             <nav class="py-4 px-2 space-y-1">
                 <div v-for="item in sidebarItems" :key="item.name" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer" :class="{ 'active': item.active }" @click="switchSidebar(item)">
                     <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
                     <span class="sidebar-text text-white text-sm font-medium">{{ item.name }}</span>
-                    <!-- 红点角标已移除 -->
                 </div>
             </nav>
         </aside>
@@ -79,6 +74,26 @@
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
                         <span class="text-sm text-gray-500">{{ currentDate }} 周{{ weekdayCN }}</span>
+                    </div>
+
+                    <!-- 已投公司统计 -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-purple-600">{{ stats.uniqueCompanies }}</div>
+                            <div class="text-sm text-gray-500">已投公司</div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ stats.totalApplications }}</div>
+                            <div class="text-sm text-gray-500">总投递数</div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-yellow-600">{{ stats.interviewingCompanies }}</div>
+                            <div class="text-sm text-gray-500">面试中公司</div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-green-600">{{ stats.offerCompanies }}</div>
+                            <div class="text-sm text-gray-500">Offer公司</div>
+                        </div>
                     </div>
 
                     <!-- 预警提示条 -->
@@ -147,7 +162,7 @@
                     </div>
 
                     <!-- 列表展示区 -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                         <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
                             <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
                             <template v-if="recentInterviews.length > 0">
@@ -178,20 +193,6 @@
                             </template>
                             <template v-else><div class="text-center text-gray-400 py-6">暂无投递记录</div></template>
                         </div>
-                    </div>
-
-                    <!-- 已投公司统计（替代原重点关注和意向岗位） -->
-                    <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
-                        <h2 class="text-lg font-semibold text-gray-700 mb-3">🏢 已投公司统计</h2>
-                        <template v-if="appliedCompanies.length > 0">
-                            <div class="flex flex-wrap gap-2">
-                                <span v-for="(company, idx) in appliedCompanies" :key="idx" class="tag bg-blue-100 text-blue-800 text-sm px-3 py-1.5">
-                                    {{ company.name }} ({{ company.count }})
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-500 mt-3">共投递 {{ appliedCompanies.length }} 家公司</div>
-                        </template>
-                        <template v-else><div class="text-center text-gray-400 py-6">暂无已投递记录</div></template>
                     </div>
                 </div>
 
@@ -351,7 +352,7 @@
                 </div>
             </transition>
 
-            <!-- 编辑投递记录简版模态框（总览页使用） -->
+            <!-- 编辑投递记录模态框（总览页简版） -->
             <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">✏️ 编辑投递记录</h2>
@@ -362,6 +363,8 @@
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <!-- 当状态为面试类时，显示面试时间输入框 -->
+                        <div v-if="isInterviewStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
                     </div>
                     <div class="flex gap-2 mt-5">
@@ -371,7 +374,7 @@
                 </div>
             </div>
 
-            <!-- 新增/编辑投递记录完整模态框（投递记录页使用，含进度时间线） -->
+            <!-- 新增/编辑投递记录模态框（投递记录页） -->
             <div v-if="showRecordModal" class="modal-overlay" @click.self="closeRecordModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ recordModalTitle }}</h2>
@@ -382,17 +385,10 @@
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="recordForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京（多个用 / 分隔）"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><p class="text-xs text-gray-400 mt-1">如状态为"待投递"，可留空。</p></div>
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <!-- 当状态为面试类时，显示面试时间输入框 -->
+                        <div v-if="isInterviewStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：负责数据平台建设..."></textarea></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
-                        <!-- 进度时间线 -->
-                        <div>
-                            <label class="text-xs font-medium text-gray-600">📅 进度时间线</label>
-                            <div id="timelineContainer">
-                                <div id="timelineList"></div>
-                                <button type="button" class="btn mt-2 px-3 py-1.5 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50" @click="addTimelineItem">＋ 添加进度节点</button>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-1">记录测评、面试等关键节点的日期。</p>
-                        </div>
                     </div>
                     <div class="flex gap-2 mt-5">
                         <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeRecordModal">取消</button>
@@ -401,7 +397,7 @@
                 </div>
             </div>
 
-            <!-- 复盘笔记编辑模态框 -->
+            <!-- 笔记编辑模态框 -->
             <div v-if="showNoteModal" class="modal-overlay" @click.self="closeNoteModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ noteForm.id ? '编辑笔记' : '新建笔记' }}</h2>
@@ -420,9 +416,9 @@
     </div>
 
     <script>
-        const { createApp, ref, reactive, computed, onMounted, watch, nextTick } = Vue;
+        const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
-        // ---------- IndexedDB 常量与函数 ----------
+        // IndexedDB 附件存储辅助函数
         const DB_NAME = 'QiuzhaoAttachments';
         const DB_STORE = 'attachments';
         let db = null;
@@ -516,30 +512,26 @@
 
         createApp({
             setup() {
-                // ---------- 数据 ----------
                 const applications = ref([]);
+                const showEditModal = ref(false);
+                const showRecordModal = ref(false);
+                const recordModalTitle = ref('添加投递');
                 const currentPage = ref('总览');
                 const expandedNotes = reactive(new Set());
 
-                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '' });
-                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', progressHistory: [] });
+                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '' });
                 const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
                 const selectedIds = ref([]);
                 const selectAll = ref(false);
                 const currentRecordPage = ref(1);
                 const pageSize = 10;
 
-                // 简历管理
                 const resumeList = ref([]);
                 const resumeInput = ref(null);
-                // 复盘笔记
                 const notes = ref([]);
                 const showNoteModal = ref(false);
                 const noteForm = reactive({ id: '', title: '', content: '', date: '' });
-
-                const showEditModal = ref(false);
-                const showRecordModal = ref(false);
-                const recordModalTitle = ref('添加投递');
 
                 const sidebarItems = ref([
                     { name: '总览', icon: '📊', active: true },
@@ -556,7 +548,8 @@
                 const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
                 const userInitial = computed(() => '求');
 
-                // ---------- 投递记录筛选 ----------
+                const isInterviewStatus = (status) => ['一面','二面','HR面','终面'].includes(status);
+
                 const filteredRecords = computed(() => {
                     const { company, location, category, status } = recordFilters;
                     return applications.value.filter(app => {
@@ -575,11 +568,19 @@
                 });
                 watch(recordFilters, () => { currentRecordPage.value = 1; });
 
-                // ---------- 漏斗统计 ----------
+                const stats = computed(() => {
+                    const all = applications.value;
+                    const uniqueCompanies = new Set(all.map(a => a.company)).size;
+                    const totalApplications = all.length;
+                    const interviewingCompanies = new Set(all.filter(a => isInterviewStatus(a.status)).map(a => a.company)).size;
+                    const offerCompanies = new Set(all.filter(a => a.status === 'Offer').map(a => a.company)).size;
+                    return { uniqueCompanies, totalApplications, interviewingCompanies, offerCompanies };
+                });
+
                 const funnelStats = computed(() => {
                     const total = applications.value.filter(a => a.status !== '待投递').length;
                     const assessment = applications.value.filter(a => ['测评','笔试'].includes(a.status)).length;
-                    const interviewing = applications.value.filter(a => ['一面','二面','HR面','终面'].includes(a.status)).length;
+                    const interviewing = applications.value.filter(a => isInterviewStatus(a.status)).length;
                     const offer = applications.value.filter(a => a.status === 'Offer').length;
                     const rejected = applications.value.filter(a => a.status === '拒信').length;
                     const applied = total;
@@ -587,13 +588,12 @@
                     return { applied, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
                 });
 
-                // ---------- 近期面试 ----------
                 const recentInterviews = computed(() => {
-                    const interviewStatuses = ['一面','二面','HR面','终面','AI面'];
+                    const interviewStatuses = ['一面','二面','HR面','终面'];
                     const results = [];
                     applications.value.forEach(app => {
                         if (interviewStatuses.includes(app.status)) {
-                            results.push({ id: app.id, company: app.company, position: app.position, status: app.status, timeLabel: app.date || '待定' });
+                            results.push({ id: app.id, company: app.company, position: app.position, status: app.status, timeLabel: app.interviewDate || '待定' });
                         }
                         if (app.progressHistory && app.progressHistory.length > 0) {
                             app.progressHistory.forEach(h => {
@@ -606,7 +606,6 @@
                     return results.slice(0, 6);
                 });
 
-                // ---------- 最近投递 ----------
                 const recentApplications = computed(() => {
                     return applications.value.filter(a => a.status !== '待投递')
                         .sort((a,b) => (b.date || '').localeCompare(a.date || ''))
@@ -614,13 +613,12 @@
                         .map(a => ({ id: a.id, company: a.company, position: a.position, status: a.status, date: a.date || '-' }));
                 });
 
-                // ---------- 预警 ----------
                 const upcomingAlerts = computed(() => {
                     const alerts = [];
                     applications.value.forEach(app => {
                         if (app.progressHistory && app.progressHistory.length > 0) {
                             app.progressHistory.forEach(h => {
-                                if (h.date && ['一面','二面','HR面','终面','测评','笔试'].includes(h.status)) {
+                                if (h.date && isInterviewStatus(h.status)) {
                                     const d = new Date(h.date);
                                     const now = new Date();
                                     const diff = d - now;
@@ -633,29 +631,28 @@
                                 }
                             });
                         }
+                        // 也检查直接的 interviewDate
+                        if (app.interviewDate && isInterviewStatus(app.status)) {
+                            const d = new Date(app.interviewDate);
+                            const now = new Date();
+                            const diff = d - now;
+                            if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
+                                alerts.push({
+                                    text: `${app.status} ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${app.company} ${app.position}`,
+                                    urgent: diff < 24 * 60 * 60 * 1000,
+                                });
+                            }
+                        }
                     });
                     return alerts.slice(0, 3);
                 });
 
-                // ---------- 已投公司统计 ----------
-                const appliedCompanies = computed(() => {
-                    const map = new Map();
-                    applications.value.forEach(app => {
-                        if (app.status !== '待投递' && app.company) {
-                            map.set(app.company, (map.get(app.company) || 0) + 1);
-                        }
-                    });
-                    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
-                });
-
-                // ---------- 状态标签颜色 ----------
                 function getStatusClass(status) {
                     const map = {
                         '待投递': 'bg-gray-100 text-gray-600',
                         '已投递': 'bg-blue-100 text-blue-700',
                         '测评': 'bg-blue-100 text-blue-700',
                         '笔试': 'bg-purple-100 text-purple-700',
-                        'AI面': 'bg-green-100 text-green-700',
                         '一面': 'bg-yellow-100 text-yellow-700',
                         '二面': 'bg-orange-100 text-orange-700',
                         'HR面': 'bg-pink-100 text-pink-700',
@@ -667,7 +664,6 @@
                     return map[status] || 'bg-gray-100 text-gray-600';
                 }
 
-                // ---------- 侧边栏切换 ----------
                 function switchSidebar(item) {
                     if (item.name === '企业库') {
                         alert('「企业库」页面暂未开放，敬请期待！');
@@ -678,7 +674,6 @@
                     currentPage.value = item.name;
                 }
 
-                // ---------- 编辑（总览页简版） ----------
                 function editRecord(id) {
                     const app = applications.value.find(a => a.id === id);
                     if (!app) return;
@@ -690,13 +685,14 @@
                     editForm.date = app.date || '';
                     editForm.status = app.status || '待投递';
                     editForm.note = app.note || '';
+                    editForm.interviewDate = app.interviewDate || '';
                     showEditModal.value = true;
                 }
                 function closeEditModal() { showEditModal.value = false; }
                 function saveEdit() {
                     const idx = applications.value.findIndex(a => a.id === editForm.id);
                     if (idx !== -1) {
-                        applications.value[idx] = {
+                        const updated = {
                             ...applications.value[idx],
                             company: editForm.company.trim(),
                             position: editForm.position.trim(),
@@ -705,14 +701,22 @@
                             date: editForm.date,
                             status: editForm.status,
                             note: editForm.note.trim(),
+                            interviewDate: editForm.interviewDate || '',
                         };
+                        // 同步 progressHistory
+                        if (isInterviewStatus(editForm.status) && editForm.interviewDate) {
+                            updated.progressHistory = [
+                                ...(applications.value[idx].progressHistory || []).filter(h => h.status !== editForm.status),
+                                { status: editForm.status, date: editForm.interviewDate }
+                            ];
+                        }
+                        applications.value[idx] = updated;
                         localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
                     }
                     closeEditModal();
                     loadData();
                 }
 
-                // ---------- 投递记录页面操作 ----------
                 function openAddModal() {
                     recordForm.id = '';
                     recordForm.company = '';
@@ -723,11 +727,9 @@
                     recordForm.status = '待投递';
                     recordForm.jobDescription = '';
                     recordForm.note = '';
-                    recordForm.progressHistory = [];
+                    recordForm.interviewDate = '';
                     recordModalTitle.value = '新增投递';
                     showRecordModal.value = true;
-                    // 重新渲染时间线列表
-                    nextTick(() => renderTimelineList());
                 }
                 function openEditModalFromRecord(id) {
                     const app = applications.value.find(a => a.id === id);
@@ -741,10 +743,9 @@
                     recordForm.status = app.status || '待投递';
                     recordForm.jobDescription = app.jobDescription || '';
                     recordForm.note = app.note || '';
-                    recordForm.progressHistory = app.progressHistory ? JSON.parse(JSON.stringify(app.progressHistory)) : [];
+                    recordForm.interviewDate = app.interviewDate || '';
                     recordModalTitle.value = '编辑投递';
                     showRecordModal.value = true;
-                    nextTick(() => renderTimelineList());
                 }
                 function closeRecordModal() { showRecordModal.value = false; }
                 function saveRecordForm() {
@@ -752,7 +753,7 @@
                         alert('公司名称和职位不能为空');
                         return;
                     }
-                    const recordData = {
+                    const baseData = {
                         company: recordForm.company.trim(),
                         position: recordForm.position.trim(),
                         category: recordForm.category,
@@ -761,18 +762,28 @@
                         status: recordForm.status,
                         jobDescription: recordForm.jobDescription.trim(),
                         note: recordForm.note.trim(),
-                        progressHistory: recordForm.progressHistory || []
+                        interviewDate: recordForm.interviewDate || '',
                     };
                     if (recordForm.id) {
                         const idx = applications.value.findIndex(a => a.id === recordForm.id);
                         if (idx !== -1) {
-                            applications.value[idx] = { ...applications.value[idx], ...recordData };
+                            const old = applications.value[idx];
+                            let newHistory = old.progressHistory || [];
+                            if (isInterviewStatus(recordForm.status) && recordForm.interviewDate) {
+                                newHistory = [
+                                    ...newHistory.filter(h => h.status !== recordForm.status),
+                                    { status: recordForm.status, date: recordForm.interviewDate }
+                                ];
+                            }
+                            applications.value[idx] = { ...old, ...baseData, progressHistory: newHistory };
                         }
                     } else {
-                        applications.value.unshift({
-                            id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                            ...recordData
-                        });
+                        const newId = Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+                        let history = [];
+                        if (isInterviewStatus(recordForm.status) && recordForm.interviewDate) {
+                            history.push({ status: recordForm.status, date: recordForm.interviewDate });
+                        }
+                        applications.value.unshift({ id: newId, ...baseData, progressHistory: history });
                     }
                     localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
                     closeRecordModal();
@@ -815,50 +826,6 @@
                     else expandedNotes.add(id);
                 }
 
-                // ---------- 进度时间线管理 ----------
-                function renderTimelineList() {
-                    const listEl = document.getElementById('timelineList');
-                    if (!listEl) return;
-                    listEl.innerHTML = '';
-                    (recordForm.progressHistory || []).forEach((item, index) => {
-                        const div = document.createElement('div');
-                        div.className = 'progress-line-item';
-                        div.innerHTML = `
-                            <select class="timeline-status" data-index="${index}">
-                                ${['待投递','已投递','测评','笔试','一面','二面','HR面','终面','Offer','拒信','已签约'].map(s => `<option value="${s}" ${s === item.status ? 'selected' : ''}>${s}</option>`).join('')}
-                            </select>
-                            <input type="date" class="timeline-date-input" data-index="${index}" value="${item.date || ''}">
-                            <button type="button" class="delete-timeline" data-index="${index}">✕</button>
-                        `;
-                        listEl.appendChild(div);
-                    });
-                    // 绑定事件
-                    listEl.querySelectorAll('.timeline-status').forEach(sel => {
-                        sel.addEventListener('change', (e) => {
-                            const idx = parseInt(e.target.dataset.index);
-                            recordForm.progressHistory[idx].status = e.target.value;
-                        });
-                    });
-                    listEl.querySelectorAll('.timeline-date-input').forEach(inp => {
-                        inp.addEventListener('change', (e) => {
-                            const idx = parseInt(e.target.dataset.index);
-                            recordForm.progressHistory[idx].date = e.target.value;
-                        });
-                    });
-                    listEl.querySelectorAll('.delete-timeline').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const idx = parseInt(e.target.dataset.index);
-                            recordForm.progressHistory.splice(idx, 1);
-                            renderTimelineList();
-                        });
-                    });
-                }
-                function addTimelineItem() {
-                    recordForm.progressHistory.push({ status: '测评', date: '' });
-                    renderTimelineList();
-                }
-
-                // ---------- 简历管理 ----------
                 async function loadResumes() {
                     try {
                         const resumes = await getAttachmentsByRecord('__resume__');
@@ -884,7 +851,6 @@
                     loadResumes();
                 }
 
-                // ---------- 复盘笔记 ----------
                 function loadNotes() {
                     const stored = localStorage.getItem('qiuzhao_review_notes');
                     if (stored) {
@@ -931,7 +897,6 @@
                     loadNotes();
                 }
 
-                // ---------- 加载数据 ----------
                 function loadData() {
                     const stored = localStorage.getItem('qiuzhao_applications_v2');
                     if (stored) {
@@ -946,6 +911,7 @@
                         note: a.note || '',
                         jobDescription: a.jobDescription || '',
                         progressHistory: a.progressHistory || [],
+                        interviewDate: a.interviewDate || '',
                     }));
                 }
 
@@ -958,21 +924,19 @@
                 return {
                     applications, currentPage, sidebarItems,
                     currentDate, weekdayCN, userInitial,
-                    funnelStats, recentInterviews, recentApplications,
-                    upcomingAlerts, appliedCompanies,
+                    stats, funnelStats, recentInterviews, recentApplications,
+                    upcomingAlerts,
                     showEditModal, showRecordModal, recordModalTitle,
                     editForm, recordForm, recordFilters,
                     filteredRecords, filteredRecordCount, paginatedRecords, totalRecordPages, currentRecordPage,
                     selectedIds, selectAll, expandedNotes,
                     resumeList, resumeInput, notes, showNoteModal, noteForm,
-                    getStatusClass, switchSidebar,
+                    isInterviewStatus, getStatusClass, switchSidebar,
                     editRecord, closeEditModal, saveEdit,
                     openAddModal, openEditModalFromRecord, closeRecordModal, saveRecordForm,
-                    deleteRecord, toggleFocus, isFocused,
-                    toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
+                    deleteRecord, toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
                     triggerResumeUpload, uploadResume, downloadResume, deleteResume,
                     openNoteModal, closeNoteModal, saveNote, deleteNote,
-                    addTimelineItem, renderTimelineList,
                     loadData
                 };
             }
