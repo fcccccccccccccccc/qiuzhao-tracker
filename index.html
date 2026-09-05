@@ -234,6 +234,7 @@
                                     <option value="已投递">已投递</option>
                                     <option value="测评">测评</option>
                                     <option value="笔试">笔试</option>
+                                    <option value="AI面试">AI面试</option>
                                     <option value="一面">一面</option>
                                     <option value="二面">二面</option>
                                     <option value="HR面">HR面</option>
@@ -362,7 +363,7 @@
                         <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="editForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
                         <div v-if="isInterviewStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
                     </div>
@@ -383,7 +384,7 @@
                         <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="recordForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="recordForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京（多个用 / 分隔）"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><p class="text-xs text-gray-400 mt-1">如状态为"待投递"，可留空。</p></div>
-                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
                         <div v-if="isInterviewStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：负责数据平台建设..."></textarea></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
@@ -545,7 +546,8 @@
                 const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
                 const userInitial = computed(() => '求');
 
-                const isInterviewStatus = (status) => ['一面','二面','HR面','终面'].includes(status);
+                // 注意：AI面试也是面试状态
+                const isInterviewStatus = (status) => ['一面','二面','HR面','终面','AI面试'].includes(status);
 
                 const filteredRecords = computed(() => {
                     const { company, location, category, status } = recordFilters;
@@ -585,7 +587,7 @@
                     return { applied, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
                 });
 
-                // 修复：只显示当前状态为面试的记录
+                // 只显示当前状态为面试的记录（包含AI面试）
                 const recentInterviews = computed(() => {
                     return applications.value
                         .filter(app => isInterviewStatus(app.status))
@@ -645,6 +647,7 @@
                         '已投递': 'bg-blue-100 text-blue-700',
                         '测评': 'bg-blue-100 text-blue-700',
                         '笔试': 'bg-purple-100 text-purple-700',
+                        'AI面试': 'bg-green-100 text-green-700',
                         '一面': 'bg-yellow-100 text-yellow-700',
                         '二面': 'bg-orange-100 text-orange-700',
                         'HR面': 'bg-pink-100 text-pink-700',
