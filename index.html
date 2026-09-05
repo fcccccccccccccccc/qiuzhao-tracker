@@ -161,25 +161,46 @@
                         </div>
                     </div>
 
-                    <!-- 列表展示区 -->
+                    <!-- 列表展示区：左侧面试+测评，右侧最近投递 -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
-                            <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
-                            <template v-if="recentInterviews.length > 0">
-                                <div v-for="(item, i) in recentInterviews" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
-                                    <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.timeLabel }}</span>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
-                                        <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                        <div class="space-y-4 md:space-y-6">
+                            <!-- 近期面试安排 -->
+                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                                <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
+                                <template v-if="recentInterviews.length > 0">
+                                    <div v-for="(item, i) in recentInterviews" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+                                        <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.timeLabel }}</span>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                                            <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                                        </div>
+                                        <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                                        <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0" @click="editRecord(item.id)">✏️</button>
                                     </div>
-                                    <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
-                                    <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0" @click="editRecord(item.id)">✏️</button>
-                                </div>
-                            </template>
-                            <template v-else><div class="text-center text-gray-400 py-6">暂无面试安排</div></template>
+                                </template>
+                                <template v-else><div class="text-center text-gray-400 py-4">暂无面试安排</div></template>
+                            </div>
+
+                            <!-- 近期测评安排 -->
+                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                                <h2 class="text-lg font-semibold text-gray-700 mb-3">📝 近期测评安排</h2>
+                                <template v-if="recentAssessments.length > 0">
+                                    <div v-for="(item, i) in recentAssessments" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+                                        <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.deadlineLabel }}</span>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                                            <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                                        </div>
+                                        <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                                        <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0" @click="editRecord(item.id)">✏️</button>
+                                    </div>
+                                </template>
+                                <template v-else><div class="text-center text-gray-400 py-4">暂无测评安排</div></template>
+                            </div>
                         </div>
 
-                        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                        <!-- 最近投递 -->
+                        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-fit">
                             <h2 class="text-lg font-semibold text-gray-700 mb-3">📋 最近投递（最新10条）</h2>
                             <template v-if="recentApplications.length > 0">
                                 <div v-for="(item, i) in recentApplications" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
@@ -198,6 +219,7 @@
 
                 <!-- 投递记录页面 -->
                 <div v-else-if="currentPage === '投递记录'" key="投递记录" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <!-- 此处保持不变，仅需要在模态框中增加测评截止时间输入，已在下面模态框处理 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📤 投递记录</h1>
                         <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="openAddModal">＋ 新增投递</button>
@@ -297,6 +319,7 @@
 
                 <!-- 简历管理页面 -->
                 <div v-else-if="currentPage === '简历管理'" key="简历管理" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <!-- 同之前，略 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📄 简历管理</h1>
                         <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="triggerResumeUpload">＋ 上传简历</button>
@@ -332,6 +355,7 @@
 
                 <!-- 复盘笔记页面 -->
                 <div v-else-if="currentPage === '复盘笔记'" key="复盘笔记" class="p-4 md:p-6 max-w-7xl mx-auto">
+                    <!-- 同之前，略 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📝 复盘笔记</h1>
                         <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="openNoteModal()">＋ 新建笔记</button>
@@ -365,6 +389,7 @@
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
                         <div v-if="isInterviewStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div v-if="isAssessmentStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="editForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
                     </div>
                     <div class="flex gap-2 mt-5">
@@ -386,6 +411,7 @@
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><p class="text-xs text-gray-400 mt-1">如状态为"待投递"，可留空。</p></div>
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
                         <div v-if="isInterviewStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div v-if="isAssessmentStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="recordForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
                         <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：负责数据平台建设..."></textarea></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
                     </div>
@@ -417,7 +443,7 @@
     <script>
         const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
-        // IndexedDB 附件存储辅助函数
+        // IndexedDB 附件存储辅助函数（保持不变）
         const DB_NAME = 'QiuzhaoAttachments';
         const DB_STORE = 'attachments';
         let db = null;
@@ -518,8 +544,8 @@
                 const currentPage = ref('总览');
                 const expandedNotes = reactive(new Set());
 
-                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '' });
-                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '' });
+                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', assessmentDeadline: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', assessmentDeadline: '' });
                 const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
                 const selectedIds = ref([]);
                 const selectAll = ref(false);
@@ -546,8 +572,10 @@
                 const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
                 const userInitial = computed(() => '求');
 
-                // 注意：AI面试也是面试状态
+                // 面试状态（包括AI面试）
                 const isInterviewStatus = (status) => ['一面','二面','HR面','终面','AI面试'].includes(status);
+                // 测评状态
+                const isAssessmentStatus = (status) => ['测评','笔试'].includes(status);
 
                 const filteredRecords = computed(() => {
                     const { company, location, category, status } = recordFilters;
@@ -578,7 +606,7 @@
 
                 const funnelStats = computed(() => {
                     const total = applications.value.filter(a => a.status !== '待投递').length;
-                    const assessment = applications.value.filter(a => ['测评','笔试'].includes(a.status)).length;
+                    const assessment = applications.value.filter(a => isAssessmentStatus(a.status)).length;
                     const interviewing = applications.value.filter(a => isInterviewStatus(a.status)).length;
                     const offer = applications.value.filter(a => a.status === 'Offer').length;
                     const rejected = applications.value.filter(a => a.status === '拒信').length;
@@ -587,7 +615,7 @@
                     return { applied, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
                 });
 
-                // 只显示当前状态为面试的记录（包含AI面试）
+                // 近期面试安排（只显示当前状态为面试的记录）
                 const recentInterviews = computed(() => {
                     return applications.value
                         .filter(app => isInterviewStatus(app.status))
@@ -598,6 +626,22 @@
                             status: app.status,
                             timeLabel: app.interviewDate || (app.progressHistory || []).find(h => h.status === app.status)?.date || '待定'
                         }))
+                        .sort((a,b) => (a.timeLabel === '待定' ? 1 : b.timeLabel === '待定' ? -1 : a.timeLabel.localeCompare(b.timeLabel)))
+                        .slice(0, 6);
+                });
+
+                // 新增：近期测评安排（状态为测评/笔试且设置了截止时间）
+                const recentAssessments = computed(() => {
+                    return applications.value
+                        .filter(app => isAssessmentStatus(app.status) && app.assessmentDeadline)
+                        .map(app => ({
+                            id: app.id,
+                            company: app.company,
+                            position: app.position,
+                            status: app.status,
+                            deadlineLabel: app.assessmentDeadline
+                        }))
+                        .sort((a,b) => a.deadlineLabel.localeCompare(b.deadlineLabel))
                         .slice(0, 6);
                 });
 
@@ -608,9 +652,23 @@
                         .map(a => ({ id: a.id, company: a.company, position: a.position, status: a.status, date: a.date || '-' }));
                 });
 
+                // 预警提示：面试 + 测评截止
                 const upcomingAlerts = computed(() => {
                     const alerts = [];
                     applications.value.forEach(app => {
+                        // 面试
+                        if (app.interviewDate && isInterviewStatus(app.status)) {
+                            const d = new Date(app.interviewDate);
+                            const now = new Date();
+                            const diff = d - now;
+                            if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
+                                alerts.push({
+                                    text: `${app.status} ${app.interviewDate} ${app.company} ${app.position}`,
+                                    urgent: diff < 24 * 60 * 60 * 1000,
+                                });
+                            }
+                        }
+                        // 从 progressHistory 中检查面试（可能有其他面试状态）
                         if (app.progressHistory && app.progressHistory.length > 0) {
                             app.progressHistory.forEach(h => {
                                 if (h.date && isInterviewStatus(h.status)) {
@@ -619,26 +677,27 @@
                                     const diff = d - now;
                                     if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
                                         alerts.push({
-                                            text: `${h.status} ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${app.company} ${app.position}`,
+                                            text: `${h.status} ${h.date} ${app.company} ${app.position}`,
                                             urgent: diff < 24 * 60 * 60 * 1000,
                                         });
                                     }
                                 }
                             });
                         }
-                        if (app.interviewDate && isInterviewStatus(app.status)) {
-                            const d = new Date(app.interviewDate);
+                        // 测评截止
+                        if (app.assessmentDeadline && isAssessmentStatus(app.status)) {
+                            const d = new Date(app.assessmentDeadline);
                             const now = new Date();
                             const diff = d - now;
                             if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
                                 alerts.push({
-                                    text: `${app.status} ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${app.company} ${app.position}`,
+                                    text: `${app.status}截止 ${app.assessmentDeadline} ${app.company} ${app.position}`,
                                     urgent: diff < 24 * 60 * 60 * 1000,
                                 });
                             }
                         }
                     });
-                    return alerts.slice(0, 3);
+                    return alerts.slice(0, 5);
                 });
 
                 function getStatusClass(status) {
@@ -677,6 +736,7 @@
                     editForm.status = app.status || '待投递';
                     editForm.note = app.note || '';
                     editForm.interviewDate = app.interviewDate || '';
+                    editForm.assessmentDeadline = app.assessmentDeadline || '';
                     showEditModal.value = true;
                 }
                 function closeEditModal() { showEditModal.value = false; }
@@ -693,6 +753,7 @@
                             status: editForm.status,
                             note: editForm.note.trim(),
                         };
+                        // 处理面试时间
                         if (!isInterviewStatus(editForm.status)) {
                             updated.interviewDate = '';
                             updated.progressHistory = (applications.value[idx].progressHistory || []).filter(h => !isInterviewStatus(h.status));
@@ -704,6 +765,12 @@
                                 history.push({ status: editForm.status, date: editForm.interviewDate });
                             }
                             updated.progressHistory = history;
+                        }
+                        // 处理测评截止时间
+                        if (!isAssessmentStatus(editForm.status)) {
+                            updated.assessmentDeadline = '';
+                        } else {
+                            updated.assessmentDeadline = editForm.assessmentDeadline || '';
                         }
                         applications.value[idx] = updated;
                         localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
@@ -723,6 +790,7 @@
                     recordForm.jobDescription = '';
                     recordForm.note = '';
                     recordForm.interviewDate = '';
+                    recordForm.assessmentDeadline = '';
                     recordModalTitle.value = '新增投递';
                     showRecordModal.value = true;
                 }
@@ -739,6 +807,7 @@
                     recordForm.jobDescription = app.jobDescription || '';
                     recordForm.note = app.note || '';
                     recordForm.interviewDate = app.interviewDate || '';
+                    recordForm.assessmentDeadline = app.assessmentDeadline || '';
                     recordModalTitle.value = '编辑投递';
                     showRecordModal.value = true;
                 }
@@ -758,19 +827,32 @@
                         jobDescription: recordForm.jobDescription.trim(),
                         note: recordForm.note.trim(),
                     };
+                    // 面试时间处理
+                    if (isInterviewStatus(recordForm.status)) {
+                        baseData.interviewDate = recordForm.interviewDate || '';
+                    } else {
+                        baseData.interviewDate = '';
+                    }
+                    // 测评截止时间处理
+                    if (isAssessmentStatus(recordForm.status)) {
+                        baseData.assessmentDeadline = recordForm.assessmentDeadline || '';
+                    } else {
+                        baseData.assessmentDeadline = '';
+                    }
+
                     if (recordForm.id) {
                         const idx = applications.value.findIndex(a => a.id === recordForm.id);
                         if (idx !== -1) {
                             const old = applications.value[idx];
                             let newHistory = old.progressHistory || [];
+                            // 更新面试相关历史
                             if (isInterviewStatus(recordForm.status)) {
                                 newHistory = newHistory.filter(h => h.status !== recordForm.status);
                                 if (recordForm.interviewDate) {
                                     newHistory.push({ status: recordForm.status, date: recordForm.interviewDate });
                                 }
-                                baseData.interviewDate = recordForm.interviewDate || '';
                             } else {
-                                baseData.interviewDate = '';
+                                // 非面试状态，移除面试记录
                                 newHistory = newHistory.filter(h => !isInterviewStatus(h.status));
                             }
                             applications.value[idx] = { ...old, ...baseData, progressHistory: newHistory };
@@ -780,9 +862,6 @@
                         let history = [];
                         if (isInterviewStatus(recordForm.status) && recordForm.interviewDate) {
                             history.push({ status: recordForm.status, date: recordForm.interviewDate });
-                            baseData.interviewDate = recordForm.interviewDate;
-                        } else {
-                            baseData.interviewDate = '';
                         }
                         applications.value.unshift({ id: newId, ...baseData, progressHistory: history });
                     }
@@ -827,15 +906,14 @@
                     else expandedNotes.add(id);
                 }
 
+                // 简历管理相关函数（保持不变，略）
                 async function loadResumes() {
                     try {
                         const resumes = await getAttachmentsByRecord('__resume__');
                         resumeList.value = resumes;
                     } catch(e) { console.error(e); }
                 }
-                function triggerResumeUpload() {
-                    if (resumeInput.value) resumeInput.value.click();
-                }
+                function triggerResumeUpload() { if (resumeInput.value) resumeInput.value.click(); }
                 async function uploadResume(event) {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -843,32 +921,24 @@
                     event.target.value = '';
                     loadResumes();
                 }
-                function downloadResume(fileName) {
-                    downloadAttachment('__resume__', fileName);
-                }
+                function downloadResume(fileName) { downloadAttachment('__resume__', fileName); }
                 async function deleteResume(fileName) {
                     if (!confirm('确定删除该简历吗？')) return;
                     await deleteAttachment('__resume__', fileName);
                     loadResumes();
                 }
 
+                // 复盘笔记相关函数
                 function loadNotes() {
                     const stored = localStorage.getItem('qiuzhao_review_notes');
-                    if (stored) {
-                        try { notes.value = JSON.parse(stored); } catch(e) { notes.value = []; }
-                    } else { notes.value = []; }
+                    if (stored) { try { notes.value = JSON.parse(stored); } catch(e) { notes.value = []; } }
+                    else { notes.value = []; }
                 }
                 function openNoteModal(note = null) {
                     if (note) {
-                        noteForm.id = note.id;
-                        noteForm.title = note.title;
-                        noteForm.content = note.content;
-                        noteForm.date = note.date || '';
+                        noteForm.id = note.id; noteForm.title = note.title; noteForm.content = note.content; noteForm.date = note.date || '';
                     } else {
-                        noteForm.id = '';
-                        noteForm.title = '';
-                        noteForm.content = '';
-                        noteForm.date = new Date().toISOString().slice(0,10);
+                        noteForm.id = ''; noteForm.title = ''; noteForm.content = ''; noteForm.date = new Date().toISOString().slice(0,10);
                     }
                     showNoteModal.value = true;
                 }
@@ -913,6 +983,7 @@
                         jobDescription: a.jobDescription || '',
                         progressHistory: a.progressHistory || [],
                         interviewDate: a.interviewDate || '',
+                        assessmentDeadline: a.assessmentDeadline || '',
                     }));
                 }
 
@@ -925,14 +996,14 @@
                 return {
                     applications, currentPage, sidebarItems,
                     currentDate, weekdayCN, userInitial,
-                    stats, funnelStats, recentInterviews, recentApplications,
+                    stats, funnelStats, recentInterviews, recentAssessments, recentApplications,
                     upcomingAlerts,
                     showEditModal, showRecordModal, recordModalTitle,
                     editForm, recordForm, recordFilters,
                     filteredRecords, filteredRecordCount, paginatedRecords, totalRecordPages, currentRecordPage,
                     selectedIds, selectAll, expandedNotes,
                     resumeList, resumeInput, notes, showNoteModal, noteForm,
-                    isInterviewStatus, getStatusClass, switchSidebar,
+                    isInterviewStatus, isAssessmentStatus, getStatusClass, switchSidebar,
                     editRecord, closeEditModal, saveEdit,
                     openAddModal, openEditModalFromRecord, closeRecordModal, saveRecordForm,
                     deleteRecord, toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
