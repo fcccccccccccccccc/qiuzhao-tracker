@@ -24,24 +24,20 @@
         .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
         .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
         .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
-        .attachment-list { list-style: none; margin-top: 8px; padding-left: 0; }
-        .attachment-list li { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
-        .attachment-list .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
-        .attachment-actions button { padding: 2px 8px; font-size: 12px; margin-left: 4px; }
         .progress-line-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .progress-line-item select, .progress-line-item input { min-width: 120px; }
         .progress-line-item button { padding: 4px 10px; }
-        .timeline-date { font-size: 12px; color: #6b7280; margin-left: 5px; }
         @media (max-width: 1024px) { .funnel-container { flex-wrap: wrap; gap: 8px; } .funnel-arrow { display: none; } .funnel-card { min-width: 45%; } }
         @media (max-width: 768px) { .sidebar { width: 60px !important; } .sidebar-text { display: none; } .main-content { margin-left: 60px !important; } .funnel-card { min-width: 100%; } }
         .table-row-hover:hover { background: #fafafa; }
         .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
+        .assessment-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0f2f5; }
+        .assessment-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- 顶部导航栏 -->
         <header class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4" style="background: linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6);">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white text-xl font-bold shadow-inner">🍂</div>
@@ -56,7 +52,6 @@
             </div>
         </header>
 
-        <!-- 侧边栏 -->
         <aside class="fixed left-0 top-14 bottom-0 z-40 sidebar overflow-y-auto transition-all duration-200" style="background: #5b21b6; width: 200px;">
             <nav class="py-4 px-2 space-y-1">
                 <div v-for="item in sidebarItems" :key="item.name" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer" :class="{ 'active': item.active }" @click="switchSidebar(item)">
@@ -66,7 +61,6 @@
             </nav>
         </aside>
 
-        <!-- 主内容区 -->
         <main class="pt-14 main-content transition-all duration-200" style="margin-left: 200px;">
             <transition name="fade" mode="out-in">
                 <!-- 总览页面 -->
@@ -76,7 +70,6 @@
                         <span class="text-sm text-gray-500">{{ currentDate }} 周{{ weekdayCN }}</span>
                     </div>
 
-                    <!-- 已投公司统计 -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         <div class="bg-white rounded-xl p-4 shadow-sm text-center">
                             <div class="text-2xl font-bold text-purple-600">{{ stats.uniqueCompanies }}</div>
@@ -96,7 +89,6 @@
                         </div>
                     </div>
 
-                    <!-- 预警提示条 -->
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
                         <div class="flex items-center gap-2 mb-2">
                             <span class="text-amber-500 text-lg">⚠️</span>
@@ -115,7 +107,6 @@
                         </div>
                     </div>
 
-                    <!-- 求职漏斗 -->
                     <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-700 mb-4">📈 求职漏斗</h2>
                         <div class="funnel-container flex items-center gap-2 md:gap-3 flex-wrap">
@@ -161,10 +152,8 @@
                         </div>
                     </div>
 
-                    <!-- 列表展示区：左侧面试+测评，右侧最近投递 -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                         <div class="space-y-4 md:space-y-6">
-                            <!-- 近期面试安排 -->
                             <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
                                 <h2 class="text-lg font-semibold text-gray-700 mb-3">🗓 近期面试安排</h2>
                                 <template v-if="recentInterviews.length > 0">
@@ -181,25 +170,32 @@
                                 <template v-else><div class="text-center text-gray-400 py-4">暂无面试安排</div></template>
                             </div>
 
-                            <!-- 近期测评安排 -->
+                            <!-- 近期测评安排（只显示未完成的测评） -->
                             <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
                                 <h2 class="text-lg font-semibold text-gray-700 mb-3">📝 近期测评安排</h2>
                                 <template v-if="recentAssessments.length > 0">
-                                    <div v-for="(item, i) in recentAssessments" :key="i" class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
-                                        <span class="text-xs text-gray-500 w-16 flex-shrink-0">{{ item.deadlineLabel }}</span>
+                                    <div v-for="(item, i) in recentAssessments" :key="i" class="assessment-item">
+                                        <span class="text-lg flex-shrink-0">⏰</span>
                                         <div class="flex-1 min-w-0">
                                             <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
                                             <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
                                         </div>
                                         <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                                        <span v-if="item.deadline" class="text-xs flex-shrink-0"
+                                              :class="item.remainingDays <= 1 ? 'text-red-600 font-semibold' : 'text-orange-600'">
+                                            截止 {{ item.deadline }}
+                                            <span v-if="item.remainingDays !== null" class="ml-1">
+                                                ({{ item.remainingDays === 0 ? '今天' : item.remainingDays + '天后' }})
+                                            </span>
+                                        </span>
+                                        <span v-else class="text-xs text-gray-400 flex-shrink-0">未设截止</span>
                                         <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0" @click="editRecord(item.id)">✏️</button>
                                     </div>
                                 </template>
-                                <template v-else><div class="text-center text-gray-400 py-4">暂无测评安排</div></template>
+                                <template v-else><div class="text-center text-gray-400 py-4">暂无待完成测评</div></template>
                             </div>
                         </div>
 
-                        <!-- 最近投递 -->
                         <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm h-fit">
                             <h2 class="text-lg font-semibold text-gray-700 mb-3">📋 最近投递（最新10条）</h2>
                             <template v-if="recentApplications.length > 0">
@@ -219,12 +215,10 @@
 
                 <!-- 投递记录页面 -->
                 <div v-else-if="currentPage === '投递记录'" key="投递记录" class="p-4 md:p-6 max-w-7xl mx-auto">
-                    <!-- 此处保持不变，仅需要在模态框中增加测评截止时间输入，已在下面模态框处理 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📤 投递记录</h1>
                         <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="openAddModal">＋ 新增投递</button>
                     </div>
-                    <!-- 筛选区 -->
                     <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm">
                         <div class="flex flex-wrap gap-3 items-center">
                             <div class="flex items-center gap-2">
@@ -270,7 +264,6 @@
                             <span class="ml-auto text-sm text-gray-500">共 {{ filteredRecordCount }} 条</span>
                         </div>
                     </div>
-                    <!-- 表格 -->
                     <div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
                         <table class="w-full min-w-[1100px]">
                             <thead>
@@ -295,7 +288,11 @@
                                         <td class="px-3 py-2.5"><span v-if="app.category" class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ app.category }}</span><span v-else class="text-xs text-gray-400">未分类</span></td>
                                         <td class="px-3 py-2.5 text-gray-600">{{ app.location || '-' }}</td>
                                         <td class="px-3 py-2.5 text-gray-600">{{ app.date || '-' }}</td>
-                                        <td class="px-3 py-2.5"><span class="tag" :class="getStatusClass(app.status)">{{ app.status || '待投递' }}</span></td>
+                                        <td class="px-3 py-2.5">
+                                            <span class="tag" :class="getStatusClass(app.status)">{{ app.status || '待投递' }}</span>
+                                            <span v-if="isAssessmentStatus(app.status) && app.assessmentCompleted" class="ml-1 text-xs text-green-600">✅</span>
+                                            <span v-else-if="isAssessmentStatus(app.status) && app.assessmentDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
+                                        </td>
                                         <td class="px-3 py-2.5"><span class="expandable-cell cursor-pointer" :title="app.note || ''" @click="toggleExpandNote(app.id)">{{ app.note || '-' }}</span><div v-if="expandedNotes.has(app.id)" class="text-xs text-gray-500 mt-1 whitespace-normal">{{ app.note }}</div></td>
                                         <td class="px-3 py-2.5"><div class="flex gap-1"><button class="px-2 py-1 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50 transition-colors" @click="openEditModalFromRecord(app.id)">✏️ 编辑</button><button class="px-2 py-1 text-xs border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors" @click="deleteRecord(app.id)">🗑 删除</button></div></td>
                                     </tr>
@@ -304,7 +301,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- 分页 -->
                     <div class="flex items-center justify-between mt-4 flex-wrap gap-2">
                         <div class="flex items-center gap-2">
                             <button v-if="selectedIds.length > 0" class="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" @click="batchDeleteRecords">🗑 批量删除（{{ selectedIds.length }}）</button>
@@ -319,7 +315,6 @@
 
                 <!-- 简历管理页面 -->
                 <div v-else-if="currentPage === '简历管理'" key="简历管理" class="p-4 md:p-6 max-w-7xl mx-auto">
-                    <!-- 同之前，略 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📄 简历管理</h1>
                         <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="triggerResumeUpload">＋ 上传简历</button>
@@ -355,7 +350,6 @@
 
                 <!-- 复盘笔记页面 -->
                 <div v-else-if="currentPage === '复盘笔记'" key="复盘笔记" class="p-4 md:p-6 max-w-7xl mx-auto">
-                    <!-- 同之前，略 -->
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📝 复盘笔记</h1>
                         <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium" @click="openNoteModal()">＋ 新建笔记</button>
@@ -377,20 +371,23 @@
                 </div>
             </transition>
 
-            <!-- 编辑投递记录模态框（总览页简版） -->
+            <!-- 编辑投递记录模态框 -->
             <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">✏️ 编辑投递记录</h2>
                     <div class="space-y-3">
-                        <div><label class="text-xs font-medium text-gray-600">公司名称</label><input v-model="editForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：字节跳动"></div>
-                        <div><label class="text-xs font-medium text-gray-600">职位</label><input v-model="editForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：后端开发工程师"></div>
-                        <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="editForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
-                        <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京"></div>
-                        <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
-                        <div v-if="isInterviewStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div v-if="isAssessmentStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="editForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
+                        <div><label class="text-xs font-medium text-gray-600">公司名称</label><input v-model="editForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div><label class="text-xs font-medium text-gray-600">职位</label><input v-model="editForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="editForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <div v-if="isInterviewStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div v-if="isAssessmentStatus(editForm.status)" class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="editForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                            <div><label class="text-xs font-medium text-gray-600">测评完成时间</label><input v-model="editForm.assessmentCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        </div>
+                        <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
                     </div>
                     <div class="flex gap-2 mt-5">
                         <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeEditModal">取消</button>
@@ -399,21 +396,24 @@
                 </div>
             </div>
 
-            <!-- 新增/编辑投递记录模态框（投递记录页） -->
+            <!-- 新增/编辑投递记录模态框 -->
             <div v-if="showRecordModal" class="modal-overlay" @click.self="closeRecordModal">
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ recordModalTitle }}</h2>
                     <div class="space-y-3">
-                        <div><label class="text-xs font-medium text-gray-600">公司名称 *</label><input v-model="recordForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：字节跳动"></div>
-                        <div><label class="text-xs font-medium text-gray-600">职位 *</label><input v-model="recordForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：后端开发工程师"></div>
-                        <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="recordForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
-                        <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="recordForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：北京（多个用 / 分隔）"></div>
-                        <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><p class="text-xs text-gray-400 mt-1">如状态为"待投递"，可留空。</p></div>
-                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
-                        <div v-if="isInterviewStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div v-if="isAssessmentStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="recordForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：负责数据平台建设..."></textarea></div>
-                        <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="例如：笔试时间、HR联系方式..."></textarea></div>
+                        <div><label class="text-xs font-medium text-gray-600">公司名称 *</label><input v-model="recordForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">职位 *</label><input v-model="recordForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="recordForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
+                        <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="recordForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
+                        <div v-if="isInterviewStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div v-if="isAssessmentStatus(recordForm.status)" class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="recordForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                            <div><label class="text-xs font-medium text-gray-600">测评完成时间</label><input v-model="recordForm.assessmentCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        </div>
+                        <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
+                        <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
                     </div>
                     <div class="flex gap-2 mt-5">
                         <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeRecordModal">取消</button>
@@ -427,9 +427,9 @@
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ noteForm.id ? '编辑笔记' : '新建笔记' }}</h2>
                     <div class="space-y-3">
-                        <div><label class="text-xs font-medium text-gray-600">标题 *</label><input v-model="noteForm.title" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="笔记标题"></div>
-                        <div><label class="text-xs font-medium text-gray-600">日期</label><input v-model="noteForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div><label class="text-xs font-medium text-gray-600">内容</label><textarea v-model="noteForm.content" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="记录复盘内容..."></textarea></div>
+                        <div><label class="text-xs font-medium text-gray-600">标题 *</label><input v-model="noteForm.title" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">日期</label><input v-model="noteForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">内容</label><textarea v-model="noteForm.content" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
                     </div>
                     <div class="flex gap-2 mt-5">
                         <button class="flex-1 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm" @click="closeNoteModal">取消</button>
@@ -443,7 +443,6 @@
     <script>
         const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
-        // IndexedDB 附件存储辅助函数（保持不变）
         const DB_NAME = 'QiuzhaoAttachments';
         const DB_STORE = 'attachments';
         let db = null;
@@ -462,41 +461,26 @@
                 request.onerror = (e) => reject(e.target.error);
             });
         }
-
         function attachmentId(recordId, fileName) { return `${recordId}_${fileName}`; }
-
         async function saveAttachment(recordId, file, extraMeta = {}) {
             const database = await openDB();
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => {
                     const tx = database.transaction(DB_STORE, 'readwrite');
-                    const store = tx.objectStore(DB_STORE);
-                    const record = {
-                        id: attachmentId(recordId, file.name),
-                        recordId: recordId,
-                        name: file.name,
-                        type: file.type,
-                        data: reader.result,
-                        size: file.size,
-                        ...extraMeta
-                    };
-                    store.put(record);
+                    tx.objectStore(DB_STORE).put({ id: attachmentId(recordId, file.name), recordId, name: file.name, type: file.type, data: reader.result, size: file.size, ...extraMeta });
                     tx.oncomplete = () => resolve();
                     tx.onerror = (e) => reject(e.target.error);
                 };
                 reader.readAsArrayBuffer(file);
             });
         }
-
         async function deleteAttachment(recordId, fileName) {
             const database = await openDB();
             const tx = database.transaction(DB_STORE, 'readwrite');
-            const store = tx.objectStore(DB_STORE);
-            store.delete(attachmentId(recordId, fileName));
+            tx.objectStore(DB_STORE).delete(attachmentId(recordId, fileName));
             return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
         }
-
         async function getAttachmentsByRecord(recordId) {
             const database = await openDB();
             const tx = database.transaction(DB_STORE, 'readonly');
@@ -504,34 +488,27 @@
             const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
             return all.filter(a => a.recordId === recordId).map(a => ({ name: a.name, type: a.type, size: a.size, date: a.date || '' }));
         }
-
         async function downloadAttachment(recordId, fileName) {
             const database = await openDB();
             const tx = database.transaction(DB_STORE, 'readonly');
-            const store = tx.objectStore(DB_STORE);
-            const request = store.get(attachmentId(recordId, fileName));
+            const request = tx.objectStore(DB_STORE).get(attachmentId(recordId, fileName));
             request.onsuccess = () => {
                 const record = request.result;
                 if (record) {
                     const blob = new Blob([record.data], { type: record.type });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url;
-                    a.download = record.name;
-                    a.click();
+                    a.href = url; a.download = record.name; a.click();
                     URL.revokeObjectURL(url);
                 }
             };
-            request.onerror = (e) => alert('下载失败：' + e.target.error);
         }
-
         async function deleteAttachmentsByRecord(recordId) {
             const database = await openDB();
             const tx = database.transaction(DB_STORE, 'readwrite');
             const store = tx.objectStore(DB_STORE);
             const all = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); });
-            const toDelete = all.filter(a => a.recordId === recordId);
-            toDelete.forEach(a => store.delete(a.id));
+            all.filter(a => a.recordId === recordId).forEach(a => store.delete(a.id));
             return new Promise((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); });
         }
 
@@ -544,8 +521,8 @@
                 const currentPage = ref('总览');
                 const expandedNotes = reactive(new Set());
 
-                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', assessmentDeadline: '' });
-                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', assessmentDeadline: '' });
+                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '' });
                 const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
                 const selectedIds = ref([]);
                 const selectAll = ref(false);
@@ -572,9 +549,7 @@
                 const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
                 const userInitial = computed(() => '求');
 
-                // 面试状态（包括AI面试）
                 const isInterviewStatus = (status) => ['一面','二面','HR面','终面','AI面试'].includes(status);
-                // 测评状态
                 const isAssessmentStatus = (status) => ['测评','笔试'].includes(status);
 
                 const filteredRecords = computed(() => {
@@ -597,11 +572,12 @@
 
                 const stats = computed(() => {
                     const all = applications.value;
-                    const uniqueCompanies = new Set(all.map(a => a.company)).size;
-                    const totalApplications = all.length;
-                    const interviewingCompanies = new Set(all.filter(a => isInterviewStatus(a.status)).map(a => a.company)).size;
-                    const offerCompanies = new Set(all.filter(a => a.status === 'Offer').map(a => a.company)).size;
-                    return { uniqueCompanies, totalApplications, interviewingCompanies, offerCompanies };
+                    return {
+                        uniqueCompanies: new Set(all.map(a => a.company)).size,
+                        totalApplications: all.length,
+                        interviewingCompanies: new Set(all.filter(a => isInterviewStatus(a.status)).map(a => a.company)).size,
+                        offerCompanies: new Set(all.filter(a => a.status === 'Offer').map(a => a.company)).size,
+                    };
                 });
 
                 const funnelStats = computed(() => {
@@ -610,39 +586,42 @@
                     const interviewing = applications.value.filter(a => isInterviewStatus(a.status)).length;
                     const offer = applications.value.filter(a => a.status === 'Offer').length;
                     const rejected = applications.value.filter(a => a.status === '拒信').length;
-                    const applied = total;
                     const safeRate = (val) => total > 0 ? Math.round(val / total * 100) : 0;
-                    return { applied, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
+                    return { applied: total, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
                 });
 
-                // 近期面试安排（只显示当前状态为面试的记录）
                 const recentInterviews = computed(() => {
                     return applications.value
                         .filter(app => isInterviewStatus(app.status))
                         .map(app => ({
-                            id: app.id,
-                            company: app.company,
-                            position: app.position,
-                            status: app.status,
+                            id: app.id, company: app.company, position: app.position, status: app.status,
                             timeLabel: app.interviewDate || (app.progressHistory || []).find(h => h.status === app.status)?.date || '待定'
                         }))
                         .sort((a,b) => (a.timeLabel === '待定' ? 1 : b.timeLabel === '待定' ? -1 : a.timeLabel.localeCompare(b.timeLabel)))
                         .slice(0, 6);
                 });
 
-                // 新增：近期测评安排（状态为测评/笔试且设置了截止时间）
+                // ✅ 关键改动：只显示未完成的测评，已完成的自动从列表移除
                 const recentAssessments = computed(() => {
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
                     return applications.value
-                        .filter(app => isAssessmentStatus(app.status) && app.assessmentDeadline)
-                        .map(app => ({
-                            id: app.id,
-                            company: app.company,
-                            position: app.position,
-                            status: app.status,
-                            deadlineLabel: app.assessmentDeadline
-                        }))
-                        .sort((a,b) => a.deadlineLabel.localeCompare(b.deadlineLabel))
-                        .slice(0, 6);
+                        .filter(app => isAssessmentStatus(app.status) && !app.assessmentCompleted) // 过滤掉已完成的
+                        .map(app => {
+                            let remainingDays = null;
+                            if (app.assessmentDeadline) {
+                                const d = new Date(app.assessmentDeadline);
+                                d.setHours(0,0,0,0);
+                                remainingDays = Math.round((d - today) / (24 * 60 * 60 * 1000));
+                            }
+                            return {
+                                id: app.id, company: app.company, position: app.position, status: app.status,
+                                deadline: app.assessmentDeadline || '',
+                                remainingDays
+                            };
+                        })
+                        .sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'))
+                        .slice(0, 8);
                 });
 
                 const recentApplications = computed(() => {
@@ -652,48 +631,22 @@
                         .map(a => ({ id: a.id, company: a.company, position: a.position, status: a.status, date: a.date || '-' }));
                 });
 
-                // 预警提示：面试 + 测评截止
                 const upcomingAlerts = computed(() => {
                     const alerts = [];
                     applications.value.forEach(app => {
-                        // 面试
                         if (app.interviewDate && isInterviewStatus(app.status)) {
                             const d = new Date(app.interviewDate);
-                            const now = new Date();
-                            const diff = d - now;
+                            const diff = d - new Date();
                             if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
-                                alerts.push({
-                                    text: `${app.status} ${app.interviewDate} ${app.company} ${app.position}`,
-                                    urgent: diff < 24 * 60 * 60 * 1000,
-                                });
+                                alerts.push({ text: `${app.status} ${app.interviewDate} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
-                        // 从 progressHistory 中检查面试（可能有其他面试状态）
-                        if (app.progressHistory && app.progressHistory.length > 0) {
-                            app.progressHistory.forEach(h => {
-                                if (h.date && isInterviewStatus(h.status)) {
-                                    const d = new Date(h.date);
-                                    const now = new Date();
-                                    const diff = d - now;
-                                    if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
-                                        alerts.push({
-                                            text: `${h.status} ${h.date} ${app.company} ${app.position}`,
-                                            urgent: diff < 24 * 60 * 60 * 1000,
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        // 测评截止
-                        if (app.assessmentDeadline && isAssessmentStatus(app.status)) {
+                        // 只提醒未完成的测评
+                        if (app.assessmentDeadline && isAssessmentStatus(app.status) && !app.assessmentCompleted) {
                             const d = new Date(app.assessmentDeadline);
-                            const now = new Date();
-                            const diff = d - now;
+                            const diff = d - new Date();
                             if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
-                                alerts.push({
-                                    text: `${app.status}截止 ${app.assessmentDeadline} ${app.company} ${app.position}`,
-                                    urgent: diff < 24 * 60 * 60 * 1000,
-                                });
+                                alerts.push({ text: `${app.status}截止 ${app.assessmentDeadline} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
                     });
@@ -702,18 +655,12 @@
 
                 function getStatusClass(status) {
                     const map = {
-                        '待投递': 'bg-gray-100 text-gray-600',
-                        '已投递': 'bg-blue-100 text-blue-700',
-                        '测评': 'bg-blue-100 text-blue-700',
-                        '笔试': 'bg-purple-100 text-purple-700',
-                        'AI面试': 'bg-green-100 text-green-700',
-                        '一面': 'bg-yellow-100 text-yellow-700',
-                        '二面': 'bg-orange-100 text-orange-700',
-                        'HR面': 'bg-pink-100 text-pink-700',
-                        '终面': 'bg-teal-100 text-teal-700',
-                        'Offer': 'bg-green-100 text-green-700',
-                        '拒信': 'bg-red-100 text-red-700',
-                        '已签约': 'bg-indigo-100 text-indigo-700',
+                        '待投递': 'bg-gray-100 text-gray-600', '已投递': 'bg-blue-100 text-blue-700',
+                        '测评': 'bg-blue-100 text-blue-700', '笔试': 'bg-purple-100 text-purple-700',
+                        'AI面试': 'bg-green-100 text-green-700', '一面': 'bg-yellow-100 text-yellow-700',
+                        '二面': 'bg-orange-100 text-orange-700', 'HR面': 'bg-pink-100 text-pink-700',
+                        '终面': 'bg-teal-100 text-teal-700', 'Offer': 'bg-green-100 text-green-700',
+                        '拒信': 'bg-red-100 text-red-700', '已签约': 'bg-indigo-100 text-indigo-700',
                     };
                     return map[status] || 'bg-gray-100 text-gray-600';
                 }
@@ -737,6 +684,7 @@
                     editForm.note = app.note || '';
                     editForm.interviewDate = app.interviewDate || '';
                     editForm.assessmentDeadline = app.assessmentDeadline || '';
+                    editForm.assessmentCompleted = app.assessmentCompleted || '';
                     showEditModal.value = true;
                 }
                 function closeEditModal() { showEditModal.value = false; }
@@ -745,15 +693,10 @@
                     if (idx !== -1) {
                         const updated = {
                             ...applications.value[idx],
-                            company: editForm.company.trim(),
-                            position: editForm.position.trim(),
-                            category: editForm.category,
-                            location: editForm.location.trim(),
-                            date: editForm.date,
-                            status: editForm.status,
-                            note: editForm.note.trim(),
+                            company: editForm.company.trim(), position: editForm.position.trim(),
+                            category: editForm.category, location: editForm.location.trim(),
+                            date: editForm.date, status: editForm.status, note: editForm.note.trim(),
                         };
-                        // 处理面试时间
                         if (!isInterviewStatus(editForm.status)) {
                             updated.interviewDate = '';
                             updated.progressHistory = (applications.value[idx].progressHistory || []).filter(h => !isInterviewStatus(h.status));
@@ -761,16 +704,15 @@
                             updated.interviewDate = editForm.interviewDate || '';
                             let history = applications.value[idx].progressHistory || [];
                             history = history.filter(h => h.status !== editForm.status);
-                            if (editForm.interviewDate) {
-                                history.push({ status: editForm.status, date: editForm.interviewDate });
-                            }
+                            if (editForm.interviewDate) history.push({ status: editForm.status, date: editForm.interviewDate });
                             updated.progressHistory = history;
                         }
-                        // 处理测评截止时间
                         if (!isAssessmentStatus(editForm.status)) {
                             updated.assessmentDeadline = '';
+                            updated.assessmentCompleted = '';
                         } else {
                             updated.assessmentDeadline = editForm.assessmentDeadline || '';
+                            updated.assessmentCompleted = editForm.assessmentCompleted || '';
                         }
                         applications.value[idx] = updated;
                         localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
@@ -780,17 +722,10 @@
                 }
 
                 function openAddModal() {
-                    recordForm.id = '';
-                    recordForm.company = '';
-                    recordForm.position = '';
-                    recordForm.category = '';
-                    recordForm.location = '';
-                    recordForm.date = '';
-                    recordForm.status = '待投递';
-                    recordForm.jobDescription = '';
-                    recordForm.note = '';
-                    recordForm.interviewDate = '';
-                    recordForm.assessmentDeadline = '';
+                    recordForm.id = ''; recordForm.company = ''; recordForm.position = '';
+                    recordForm.category = ''; recordForm.location = ''; recordForm.date = '';
+                    recordForm.status = '待投递'; recordForm.jobDescription = ''; recordForm.note = '';
+                    recordForm.interviewDate = ''; recordForm.assessmentDeadline = ''; recordForm.assessmentCompleted = '';
                     recordModalTitle.value = '新增投递';
                     showRecordModal.value = true;
                 }
@@ -808,6 +743,7 @@
                     recordForm.note = app.note || '';
                     recordForm.interviewDate = app.interviewDate || '';
                     recordForm.assessmentDeadline = app.assessmentDeadline || '';
+                    recordForm.assessmentCompleted = app.assessmentCompleted || '';
                     recordModalTitle.value = '编辑投递';
                     showRecordModal.value = true;
                 }
@@ -818,41 +754,24 @@
                         return;
                     }
                     const baseData = {
-                        company: recordForm.company.trim(),
-                        position: recordForm.position.trim(),
-                        category: recordForm.category,
-                        location: recordForm.location.trim(),
-                        date: recordForm.date,
-                        status: recordForm.status,
-                        jobDescription: recordForm.jobDescription.trim(),
-                        note: recordForm.note.trim(),
+                        company: recordForm.company.trim(), position: recordForm.position.trim(),
+                        category: recordForm.category, location: recordForm.location.trim(),
+                        date: recordForm.date, status: recordForm.status,
+                        jobDescription: recordForm.jobDescription.trim(), note: recordForm.note.trim(),
                     };
-                    // 面试时间处理
-                    if (isInterviewStatus(recordForm.status)) {
-                        baseData.interviewDate = recordForm.interviewDate || '';
-                    } else {
-                        baseData.interviewDate = '';
-                    }
-                    // 测评截止时间处理
-                    if (isAssessmentStatus(recordForm.status)) {
-                        baseData.assessmentDeadline = recordForm.assessmentDeadline || '';
-                    } else {
-                        baseData.assessmentDeadline = '';
-                    }
+                    baseData.interviewDate = isInterviewStatus(recordForm.status) ? (recordForm.interviewDate || '') : '';
+                    baseData.assessmentDeadline = isAssessmentStatus(recordForm.status) ? (recordForm.assessmentDeadline || '') : '';
+                    baseData.assessmentCompleted = isAssessmentStatus(recordForm.status) ? (recordForm.assessmentCompleted || '') : '';
 
                     if (recordForm.id) {
                         const idx = applications.value.findIndex(a => a.id === recordForm.id);
                         if (idx !== -1) {
                             const old = applications.value[idx];
                             let newHistory = old.progressHistory || [];
-                            // 更新面试相关历史
                             if (isInterviewStatus(recordForm.status)) {
                                 newHistory = newHistory.filter(h => h.status !== recordForm.status);
-                                if (recordForm.interviewDate) {
-                                    newHistory.push({ status: recordForm.status, date: recordForm.interviewDate });
-                                }
+                                if (recordForm.interviewDate) newHistory.push({ status: recordForm.status, date: recordForm.interviewDate });
                             } else {
-                                // 非面试状态，移除面试记录
                                 newHistory = newHistory.filter(h => !isInterviewStatus(h.status));
                             }
                             applications.value[idx] = { ...old, ...baseData, progressHistory: newHistory };
@@ -877,41 +796,28 @@
                     loadData();
                 }
                 function toggleSelectAll() {
-                    if (selectAll.value) {
-                        selectedIds.value = filteredRecords.value.map(a => a.id);
-                    } else {
-                        selectedIds.value = [];
-                    }
+                    selectedIds.value = selectAll.value ? filteredRecords.value.map(a => a.id) : [];
                 }
                 async function batchDeleteRecords() {
                     if (selectedIds.value.length === 0) { alert('请至少选择一条记录'); return; }
                     if (!confirm(`确定要删除选中的 ${selectedIds.value.length} 条记录吗？`)) return;
-                    for (const id of selectedIds.value) {
-                        await deleteAttachmentsByRecord(id);
-                    }
+                    for (const id of selectedIds.value) await deleteAttachmentsByRecord(id);
                     applications.value = applications.value.filter(a => !selectedIds.value.includes(a.id));
-                    selectedIds.value = [];
-                    selectAll.value = false;
+                    selectedIds.value = []; selectAll.value = false;
                     localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
                     loadData();
                 }
                 function resetRecordFilters() {
-                    recordFilters.company = '';
-                    recordFilters.location = '';
-                    recordFilters.category = '';
-                    recordFilters.status = '';
+                    recordFilters.company = ''; recordFilters.location = '';
+                    recordFilters.category = ''; recordFilters.status = '';
                 }
                 function toggleExpandNote(id) {
                     if (expandedNotes.has(id)) expandedNotes.delete(id);
                     else expandedNotes.add(id);
                 }
 
-                // 简历管理相关函数（保持不变，略）
                 async function loadResumes() {
-                    try {
-                        const resumes = await getAttachmentsByRecord('__resume__');
-                        resumeList.value = resumes;
-                    } catch(e) { console.error(e); }
+                    try { resumeList.value = await getAttachmentsByRecord('__resume__'); } catch(e) { console.error(e); }
                 }
                 function triggerResumeUpload() { if (resumeInput.value) resumeInput.value.click(); }
                 async function uploadResume(event) {
@@ -928,17 +834,18 @@
                     loadResumes();
                 }
 
-                // 复盘笔记相关函数
                 function loadNotes() {
                     const stored = localStorage.getItem('qiuzhao_review_notes');
                     if (stored) { try { notes.value = JSON.parse(stored); } catch(e) { notes.value = []; } }
-                    else { notes.value = []; }
+                    else notes.value = [];
                 }
                 function openNoteModal(note = null) {
                     if (note) {
-                        noteForm.id = note.id; noteForm.title = note.title; noteForm.content = note.content; noteForm.date = note.date || '';
+                        noteForm.id = note.id; noteForm.title = note.title;
+                        noteForm.content = note.content; noteForm.date = note.date || '';
                     } else {
-                        noteForm.id = ''; noteForm.title = ''; noteForm.content = ''; noteForm.date = new Date().toISOString().slice(0,10);
+                        noteForm.id = ''; noteForm.title = ''; noteForm.content = '';
+                        noteForm.date = new Date().toISOString().slice(0,10);
                     }
                     showNoteModal.value = true;
                 }
@@ -947,19 +854,15 @@
                     if (!noteForm.title.trim()) { alert('标题不能为空'); return; }
                     const note = {
                         id: noteForm.id || Date.now().toString(36) + Math.random().toString(36).substr(2,5),
-                        title: noteForm.title.trim(),
-                        content: noteForm.content.trim(),
+                        title: noteForm.title.trim(), content: noteForm.content.trim(),
                         date: noteForm.date || new Date().toISOString().slice(0,10)
                     };
                     if (noteForm.id) {
                         const idx = notes.value.findIndex(n => n.id === note.id);
                         if (idx !== -1) notes.value[idx] = note;
-                    } else {
-                        notes.value.unshift(note);
-                    }
+                    } else notes.value.unshift(note);
                     localStorage.setItem('qiuzhao_review_notes', JSON.stringify(notes.value));
-                    closeNoteModal();
-                    loadNotes();
+                    closeNoteModal(); loadNotes();
                 }
                 function deleteNote(id) {
                     if (!confirm('确定删除该笔记吗？')) return;
@@ -970,34 +873,25 @@
 
                 function loadData() {
                     const stored = localStorage.getItem('qiuzhao_applications_v2');
-                    if (stored) {
-                        try { applications.value = JSON.parse(stored); } catch(e) { applications.value = []; }
-                    }
+                    if (stored) { try { applications.value = JSON.parse(stored); } catch(e) { applications.value = []; } }
                     if (!applications.value || !Array.isArray(applications.value)) applications.value = [];
                     applications.value = applications.value.map(a => ({
                         ...a,
-                        category: a.category || '',
-                        status: a.status || '待投递',
-                        location: a.location || '',
-                        note: a.note || '',
-                        jobDescription: a.jobDescription || '',
-                        progressHistory: a.progressHistory || [],
+                        category: a.category || '', status: a.status || '待投递',
+                        location: a.location || '', note: a.note || '',
+                        jobDescription: a.jobDescription || '', progressHistory: a.progressHistory || [],
                         interviewDate: a.interviewDate || '',
                         assessmentDeadline: a.assessmentDeadline || '',
+                        assessmentCompleted: a.assessmentCompleted || '',
                     }));
                 }
 
-                onMounted(() => {
-                    loadData();
-                    loadResumes();
-                    loadNotes();
-                });
+                onMounted(() => { loadData(); loadResumes(); loadNotes(); });
 
                 return {
                     applications, currentPage, sidebarItems,
                     currentDate, weekdayCN, userInitial,
-                    stats, funnelStats, recentInterviews, recentAssessments, recentApplications,
-                    upcomingAlerts,
+                    stats, funnelStats, recentInterviews, recentAssessments, recentApplications, upcomingAlerts,
                     showEditModal, showRecordModal, recordModalTitle,
                     editForm, recordForm, recordFilters,
                     filteredRecords, filteredRecordCount, paginatedRecords, totalRecordPages, currentRecordPage,
@@ -1008,8 +902,7 @@
                     openAddModal, openEditModalFromRecord, closeRecordModal, saveRecordForm,
                     deleteRecord, toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
                     triggerResumeUpload, uploadResume, downloadResume, deleteResume,
-                    openNoteModal, closeNoteModal, saveNote, deleteNote,
-                    loadData
+                    openNoteModal, closeNoteModal, saveNote, deleteNote, loadData
                 };
             }
         }).mount('#app');
