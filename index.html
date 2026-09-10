@@ -24,9 +24,6 @@
         .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
         .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
         .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
-        .progress-line-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-        .progress-line-item select, .progress-line-item input { min-width: 120px; }
-        .progress-line-item button { padding: 4px 10px; }
         @media (max-width: 1024px) { .funnel-container { flex-wrap: wrap; gap: 8px; } .funnel-arrow { display: none; } .funnel-card { min-width: 45%; } }
         @media (max-width: 768px) { .sidebar { width: 60px !important; } .sidebar-text { display: none; } .main-content { margin-left: 60px !important; } .funnel-card { min-width: 100%; } }
         .table-row-hover:hover { background: #fafafa; }
@@ -63,7 +60,7 @@
 
         <main class="pt-14 main-content transition-all duration-200" style="margin-left: 200px;">
             <transition name="fade" mode="out-in">
-                <!-- 总览页面 -->
+                <!-- 总览 -->
                 <div v-if="currentPage === '总览'" key="总览" class="p-4 md:p-6 max-w-7xl mx-auto">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
@@ -170,7 +167,6 @@
                                 <template v-else><div class="text-center text-gray-400 py-4">暂无面试安排</div></template>
                             </div>
 
-                            <!-- 近期测评安排（只显示未完成的测评） -->
                             <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
                                 <h2 class="text-lg font-semibold text-gray-700 mb-3">📝 近期测评安排</h2>
                                 <template v-if="recentAssessments.length > 0">
@@ -193,6 +189,31 @@
                                     </div>
                                 </template>
                                 <template v-else><div class="text-center text-gray-400 py-4">暂无待完成测评</div></template>
+                            </div>
+
+                            <!-- 新增：近期AI面试安排 -->
+                            <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+                                <h2 class="text-lg font-semibold text-gray-700 mb-3">🤖 近期AI面试安排</h2>
+                                <template v-if="recentAIInterviews.length > 0">
+                                    <div v-for="(item, i) in recentAIInterviews" :key="i" class="assessment-item">
+                                        <span class="text-lg flex-shrink-0">⏰</span>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-medium text-gray-800 truncate">{{ item.company }}</div>
+                                            <div class="text-xs text-gray-500 truncate">{{ item.position }}</div>
+                                        </div>
+                                        <span class="tag" :class="getStatusClass(item.status)">{{ item.status }}</span>
+                                        <span v-if="item.deadline" class="text-xs flex-shrink-0"
+                                              :class="item.remainingDays <= 1 ? 'text-red-600 font-semibold' : 'text-orange-600'">
+                                            截止 {{ item.deadline }}
+                                            <span v-if="item.remainingDays !== null" class="ml-1">
+                                                ({{ item.remainingDays === 0 ? '今天' : item.remainingDays + '天后' }})
+                                            </span>
+                                        </span>
+                                        <span v-else class="text-xs text-gray-400 flex-shrink-0">未设截止</span>
+                                        <button class="text-purple-600 hover:text-purple-800 text-sm font-medium flex-shrink-0" @click="editRecord(item.id)">✏️</button>
+                                    </div>
+                                </template>
+                                <template v-else><div class="text-center text-gray-400 py-4">暂无待完成AI面试</div></template>
                             </div>
                         </div>
 
@@ -231,7 +252,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm text-gray-600 font-medium">📂 类别</label>
-                                <select v-model="recordFilters.category" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                <select v-model="recordFilters.category" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                                     <option value="">全部</option>
                                     <option value="技术">技术</option>
                                     <option value="产品">产品</option>
@@ -244,7 +265,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm text-gray-600 font-medium">📌 状态</label>
-                                <select v-model="recordFilters.status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                <select v-model="recordFilters.status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                                     <option value="">全部</option>
                                     <option value="待投递">待投递</option>
                                     <option value="已投递">已投递</option>
@@ -292,6 +313,8 @@
                                             <span class="tag" :class="getStatusClass(app.status)">{{ app.status || '待投递' }}</span>
                                             <span v-if="isAssessmentStatus(app.status) && app.assessmentCompleted" class="ml-1 text-xs text-green-600">✅</span>
                                             <span v-else-if="isAssessmentStatus(app.status) && app.assessmentDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
+                                            <span v-if="isAIInterviewStatus(app.status) && app.aiInterviewCompleted" class="ml-1 text-xs text-green-600">✅</span>
+                                            <span v-else-if="isAIInterviewStatus(app.status) && app.aiInterviewDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
                                         </td>
                                         <td class="px-3 py-2.5"><span class="expandable-cell cursor-pointer" :title="app.note || ''" @click="toggleExpandNote(app.id)">{{ app.note || '-' }}</span><div v-if="expandedNotes.has(app.id)" class="text-xs text-gray-500 mt-1 whitespace-normal">{{ app.note }}</div></td>
                                         <td class="px-3 py-2.5"><div class="flex gap-1"><button class="px-2 py-1 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50 transition-colors" @click="openEditModalFromRecord(app.id)">✏️ 编辑</button><button class="px-2 py-1 text-xs border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors" @click="deleteRecord(app.id)">🗑 删除</button></div></td>
@@ -376,8 +399,8 @@
                 <div class="modal-content">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">✏️ 编辑投递记录</h2>
                     <div class="space-y-3">
-                        <div><label class="text-xs font-medium text-gray-600">公司名称</label><input v-model="editForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
-                        <div><label class="text-xs font-medium text-gray-600">职位</label><input v-model="editForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"></div>
+                        <div><label class="text-xs font-medium text-gray-600">公司名称</label><input v-model="editForm.company" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div><label class="text-xs font-medium text-gray-600">职位</label><input v-model="editForm.position" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         <div><label class="text-xs font-medium text-gray-600">岗位类别</label><select v-model="editForm.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="">请选择</option><option value="技术">技术</option><option value="产品">产品</option><option value="设计">设计</option><option value="运营">运营</option><option value="市场">市场</option><option value="职能">职能</option><option value="其他">其他</option></select></div>
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
@@ -386,6 +409,10 @@
                         <div v-if="isAssessmentStatus(editForm.status)" class="grid grid-cols-2 gap-3">
                             <div><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="editForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                             <div><label class="text-xs font-medium text-gray-600">测评完成时间</label><input v-model="editForm.assessmentCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        </div>
+                        <div v-if="isAIInterviewStatus(editForm.status)" class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs font-medium text-gray-600">AI面试截止时间</label><input v-model="editForm.aiInterviewDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                            <div><label class="text-xs font-medium text-gray-600">AI面试完成时间</label><input v-model="editForm.aiInterviewCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         </div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="editForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
                     </div>
@@ -411,6 +438,10 @@
                         <div v-if="isAssessmentStatus(recordForm.status)" class="grid grid-cols-2 gap-3">
                             <div><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="recordForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                             <div><label class="text-xs font-medium text-gray-600">测评完成时间</label><input v-model="recordForm.assessmentCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        </div>
+                        <div v-if="isAIInterviewStatus(recordForm.status)" class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs font-medium text-gray-600">AI面试截止时间</label><input v-model="recordForm.aiInterviewDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                            <div><label class="text-xs font-medium text-gray-600">AI面试完成时间</label><input v-model="recordForm.aiInterviewCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         </div>
                         <div><label class="text-xs font-medium text-gray-600">岗位描述</label><textarea v-model="recordForm.jobDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
                         <div><label class="text-xs font-medium text-gray-600">备注</label><textarea v-model="recordForm.note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></textarea></div>
@@ -521,8 +552,8 @@
                 const currentPage = ref('总览');
                 const expandedNotes = reactive(new Set());
 
-                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '' });
-                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '' });
+                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '', aiInterviewDeadline: '', aiInterviewCompleted: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '', aiInterviewDeadline: '', aiInterviewCompleted: '' });
                 const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
                 const selectedIds = ref([]);
                 const selectAll = ref(false);
@@ -549,8 +580,12 @@
                 const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
                 const userInitial = computed(() => '求');
 
-                const isInterviewStatus = (status) => ['一面','二面','HR面','终面','AI面试'].includes(status);
+                // 普通面试（AI面试不再归入此类）
+                const isInterviewStatus = (status) => ['一面','二面','HR面','终面'].includes(status);
+                // 测评
                 const isAssessmentStatus = (status) => ['测评','笔试'].includes(status);
+                // AI面试
+                const isAIInterviewStatus = (status) => status === 'AI面试';
 
                 const filteredRecords = computed(() => {
                     const { company, location, category, status } = recordFilters;
@@ -572,10 +607,11 @@
 
                 const stats = computed(() => {
                     const all = applications.value;
+                    const interviewingAll = all.filter(a => isInterviewStatus(a.status) || isAIInterviewStatus(a.status));
                     return {
                         uniqueCompanies: new Set(all.map(a => a.company)).size,
                         totalApplications: all.length,
-                        interviewingCompanies: new Set(all.filter(a => isInterviewStatus(a.status)).map(a => a.company)).size,
+                        interviewingCompanies: new Set(interviewingAll.map(a => a.company)).size,
                         offerCompanies: new Set(all.filter(a => a.status === 'Offer').map(a => a.company)).size,
                     };
                 });
@@ -583,7 +619,7 @@
                 const funnelStats = computed(() => {
                     const total = applications.value.filter(a => a.status !== '待投递').length;
                     const assessment = applications.value.filter(a => isAssessmentStatus(a.status)).length;
-                    const interviewing = applications.value.filter(a => isInterviewStatus(a.status)).length;
+                    const interviewing = applications.value.filter(a => isInterviewStatus(a.status) || isAIInterviewStatus(a.status)).length;
                     const offer = applications.value.filter(a => a.status === 'Offer').length;
                     const rejected = applications.value.filter(a => a.status === '拒信').length;
                     const safeRate = (val) => total > 0 ? Math.round(val / total * 100) : 0;
@@ -601,12 +637,11 @@
                         .slice(0, 6);
                 });
 
-                // ✅ 关键改动：只显示未完成的测评，已完成的自动从列表移除
                 const recentAssessments = computed(() => {
                     const today = new Date();
                     today.setHours(0,0,0,0);
                     return applications.value
-                        .filter(app => isAssessmentStatus(app.status) && !app.assessmentCompleted) // 过滤掉已完成的
+                        .filter(app => isAssessmentStatus(app.status) && !app.assessmentCompleted)
                         .map(app => {
                             let remainingDays = null;
                             if (app.assessmentDeadline) {
@@ -624,6 +659,29 @@
                         .slice(0, 8);
                 });
 
+                // 近期AI面试安排（只显示未完成的）
+                const recentAIInterviews = computed(() => {
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    return applications.value
+                        .filter(app => isAIInterviewStatus(app.status) && !app.aiInterviewCompleted)
+                        .map(app => {
+                            let remainingDays = null;
+                            if (app.aiInterviewDeadline) {
+                                const d = new Date(app.aiInterviewDeadline);
+                                d.setHours(0,0,0,0);
+                                remainingDays = Math.round((d - today) / (24 * 60 * 60 * 1000));
+                            }
+                            return {
+                                id: app.id, company: app.company, position: app.position, status: app.status,
+                                deadline: app.aiInterviewDeadline || '',
+                                remainingDays
+                            };
+                        })
+                        .sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'))
+                        .slice(0, 8);
+                });
+
                 const recentApplications = computed(() => {
                     return applications.value.filter(a => a.status !== '待投递')
                         .sort((a,b) => (b.date || '').localeCompare(a.date || ''))
@@ -634,6 +692,7 @@
                 const upcomingAlerts = computed(() => {
                     const alerts = [];
                     applications.value.forEach(app => {
+                        // 普通面试
                         if (app.interviewDate && isInterviewStatus(app.status)) {
                             const d = new Date(app.interviewDate);
                             const diff = d - new Date();
@@ -641,12 +700,20 @@
                                 alerts.push({ text: `${app.status} ${app.interviewDate} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
-                        // 只提醒未完成的测评
+                        // 测评截止（未完成）
                         if (app.assessmentDeadline && isAssessmentStatus(app.status) && !app.assessmentCompleted) {
                             const d = new Date(app.assessmentDeadline);
                             const diff = d - new Date();
                             if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
                                 alerts.push({ text: `${app.status}截止 ${app.assessmentDeadline} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
+                            }
+                        }
+                        // AI面试截止（未完成）
+                        if (app.aiInterviewDeadline && isAIInterviewStatus(app.status) && !app.aiInterviewCompleted) {
+                            const d = new Date(app.aiInterviewDeadline);
+                            const diff = d - new Date();
+                            if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
+                                alerts.push({ text: `AI面试截止 ${app.aiInterviewDeadline} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
                     });
@@ -685,6 +752,8 @@
                     editForm.interviewDate = app.interviewDate || '';
                     editForm.assessmentDeadline = app.assessmentDeadline || '';
                     editForm.assessmentCompleted = app.assessmentCompleted || '';
+                    editForm.aiInterviewDeadline = app.aiInterviewDeadline || '';
+                    editForm.aiInterviewCompleted = app.aiInterviewCompleted || '';
                     showEditModal.value = true;
                 }
                 function closeEditModal() { showEditModal.value = false; }
@@ -714,6 +783,13 @@
                             updated.assessmentDeadline = editForm.assessmentDeadline || '';
                             updated.assessmentCompleted = editForm.assessmentCompleted || '';
                         }
+                        if (!isAIInterviewStatus(editForm.status)) {
+                            updated.aiInterviewDeadline = '';
+                            updated.aiInterviewCompleted = '';
+                        } else {
+                            updated.aiInterviewDeadline = editForm.aiInterviewDeadline || '';
+                            updated.aiInterviewCompleted = editForm.aiInterviewCompleted || '';
+                        }
                         applications.value[idx] = updated;
                         localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
                     }
@@ -726,6 +802,7 @@
                     recordForm.category = ''; recordForm.location = ''; recordForm.date = '';
                     recordForm.status = '待投递'; recordForm.jobDescription = ''; recordForm.note = '';
                     recordForm.interviewDate = ''; recordForm.assessmentDeadline = ''; recordForm.assessmentCompleted = '';
+                    recordForm.aiInterviewDeadline = ''; recordForm.aiInterviewCompleted = '';
                     recordModalTitle.value = '新增投递';
                     showRecordModal.value = true;
                 }
@@ -744,6 +821,8 @@
                     recordForm.interviewDate = app.interviewDate || '';
                     recordForm.assessmentDeadline = app.assessmentDeadline || '';
                     recordForm.assessmentCompleted = app.assessmentCompleted || '';
+                    recordForm.aiInterviewDeadline = app.aiInterviewDeadline || '';
+                    recordForm.aiInterviewCompleted = app.aiInterviewCompleted || '';
                     recordModalTitle.value = '编辑投递';
                     showRecordModal.value = true;
                 }
@@ -762,6 +841,8 @@
                     baseData.interviewDate = isInterviewStatus(recordForm.status) ? (recordForm.interviewDate || '') : '';
                     baseData.assessmentDeadline = isAssessmentStatus(recordForm.status) ? (recordForm.assessmentDeadline || '') : '';
                     baseData.assessmentCompleted = isAssessmentStatus(recordForm.status) ? (recordForm.assessmentCompleted || '') : '';
+                    baseData.aiInterviewDeadline = isAIInterviewStatus(recordForm.status) ? (recordForm.aiInterviewDeadline || '') : '';
+                    baseData.aiInterviewCompleted = isAIInterviewStatus(recordForm.status) ? (recordForm.aiInterviewCompleted || '') : '';
 
                     if (recordForm.id) {
                         const idx = applications.value.findIndex(a => a.id === recordForm.id);
@@ -883,6 +964,8 @@
                         interviewDate: a.interviewDate || '',
                         assessmentDeadline: a.assessmentDeadline || '',
                         assessmentCompleted: a.assessmentCompleted || '',
+                        aiInterviewDeadline: a.aiInterviewDeadline || '',
+                        aiInterviewCompleted: a.aiInterviewCompleted || '',
                     }));
                 }
 
@@ -891,13 +974,13 @@
                 return {
                     applications, currentPage, sidebarItems,
                     currentDate, weekdayCN, userInitial,
-                    stats, funnelStats, recentInterviews, recentAssessments, recentApplications, upcomingAlerts,
+                    stats, funnelStats, recentInterviews, recentAssessments, recentAIInterviews, recentApplications, upcomingAlerts,
                     showEditModal, showRecordModal, recordModalTitle,
                     editForm, recordForm, recordFilters,
                     filteredRecords, filteredRecordCount, paginatedRecords, totalRecordPages, currentRecordPage,
                     selectedIds, selectAll, expandedNotes,
                     resumeList, resumeInput, notes, showNoteModal, noteForm,
-                    isInterviewStatus, isAssessmentStatus, getStatusClass, switchSidebar,
+                    isInterviewStatus, isAssessmentStatus, isAIInterviewStatus, getStatusClass, switchSidebar,
                     editRecord, closeEditModal, saveEdit,
                     openAddModal, openEditModalFromRecord, closeRecordModal, saveRecordForm,
                     deleteRecord, toggleSelectAll, batchDeleteRecords, resetRecordFilters, toggleExpandNote,
