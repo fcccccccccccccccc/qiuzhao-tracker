@@ -60,7 +60,6 @@
 
         <main class="pt-14 main-content transition-all duration-200" style="margin-left: 200px;">
             <transition name="fade" mode="out-in">
-                <!-- 总览 -->
                 <div v-if="currentPage === '总览'" key="总览" class="p-4 md:p-6 max-w-7xl mx-auto">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📊 秋招总览</h1>
@@ -191,7 +190,6 @@
                                 <template v-else><div class="text-center text-gray-400 py-4">暂无待完成测评</div></template>
                             </div>
 
-                            <!-- 新增：近期AI面试安排 -->
                             <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
                                 <h2 class="text-lg font-semibold text-gray-700 mb-3">🤖 近期AI面试安排</h2>
                                 <template v-if="recentAIInterviews.length > 0">
@@ -336,7 +334,7 @@
                     </div>
                 </div>
 
-                <!-- 简历管理页面 -->
+                <!-- 简历管理 -->
                 <div v-else-if="currentPage === '简历管理'" key="简历管理" class="p-4 md:p-6 max-w-7xl mx-auto">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📄 简历管理</h1>
@@ -371,7 +369,7 @@
                     </div>
                 </div>
 
-                <!-- 复盘笔记页面 -->
+                <!-- 复盘笔记 -->
                 <div v-else-if="currentPage === '复盘笔记'" key="复盘笔记" class="p-4 md:p-6 max-w-7xl mx-auto">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-bold text-gray-800">📝 复盘笔记</h1>
@@ -580,11 +578,8 @@
                 const weekdayCN = computed(() => ['日','一','二','三','四','五','六'][new Date().getDay()]);
                 const userInitial = computed(() => '求');
 
-                // 普通面试（AI面试不再归入此类）
                 const isInterviewStatus = (status) => ['一面','二面','HR面','终面'].includes(status);
-                // 测评
                 const isAssessmentStatus = (status) => ['测评','笔试'].includes(status);
-                // AI面试
                 const isAIInterviewStatus = (status) => status === 'AI面试';
 
                 const filteredRecords = computed(() => {
@@ -605,21 +600,24 @@
                 });
                 watch(recordFilters, () => { currentRecordPage.value = 1; });
 
+                // 已投公司统计：AI面试不算面试中公司
                 const stats = computed(() => {
                     const all = applications.value;
-                    const interviewingAll = all.filter(a => isInterviewStatus(a.status) || isAIInterviewStatus(a.status));
                     return {
                         uniqueCompanies: new Set(all.map(a => a.company)).size,
                         totalApplications: all.length,
-                        interviewingCompanies: new Set(interviewingAll.map(a => a.company)).size,
+                        interviewingCompanies: new Set(all.filter(a => isInterviewStatus(a.status)).map(a => a.company)).size,
                         offerCompanies: new Set(all.filter(a => a.status === 'Offer').map(a => a.company)).size,
                     };
                 });
 
+                // ✅ 关键改动：AI面试计入「笔试/测评」，不计入「面试中」
                 const funnelStats = computed(() => {
                     const total = applications.value.filter(a => a.status !== '待投递').length;
-                    const assessment = applications.value.filter(a => isAssessmentStatus(a.status)).length;
-                    const interviewing = applications.value.filter(a => isInterviewStatus(a.status) || isAIInterviewStatus(a.status)).length;
+                    // 测评/笔试 = 测评 + 笔试 + AI面试
+                    const assessment = applications.value.filter(a => isAssessmentStatus(a.status) || isAIInterviewStatus(a.status)).length;
+                    // 面试中 = 仅普通面试（一面/二面/HR面/终面）
+                    const interviewing = applications.value.filter(a => isInterviewStatus(a.status)).length;
                     const offer = applications.value.filter(a => a.status === 'Offer').length;
                     const rejected = applications.value.filter(a => a.status === '拒信').length;
                     const safeRate = (val) => total > 0 ? Math.round(val / total * 100) : 0;
@@ -659,7 +657,6 @@
                         .slice(0, 8);
                 });
 
-                // 近期AI面试安排（只显示未完成的）
                 const recentAIInterviews = computed(() => {
                     const today = new Date();
                     today.setHours(0,0,0,0);
@@ -692,7 +689,6 @@
                 const upcomingAlerts = computed(() => {
                     const alerts = [];
                     applications.value.forEach(app => {
-                        // 普通面试
                         if (app.interviewDate && isInterviewStatus(app.status)) {
                             const d = new Date(app.interviewDate);
                             const diff = d - new Date();
@@ -700,7 +696,6 @@
                                 alerts.push({ text: `${app.status} ${app.interviewDate} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
-                        // 测评截止（未完成）
                         if (app.assessmentDeadline && isAssessmentStatus(app.status) && !app.assessmentCompleted) {
                             const d = new Date(app.assessmentDeadline);
                             const diff = d - new Date();
@@ -708,7 +703,6 @@
                                 alerts.push({ text: `${app.status}截止 ${app.assessmentDeadline} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
-                        // AI面试截止（未完成）
                         if (app.aiInterviewDeadline && isAIInterviewStatus(app.status) && !app.aiInterviewCompleted) {
                             const d = new Date(app.aiInterviewDeadline);
                             const diff = d - new Date();
