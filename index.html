@@ -22,8 +22,6 @@
         .stat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
         .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
-        .expandable-td .expandable-cell { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; vertical-align: middle; transition: all 0.2s; }
-        .expandable-td.expanded .expandable-cell { white-space: normal; overflow: visible; max-width: none; }
         @media (max-width: 1024px) { .funnel-container { flex-wrap: wrap; gap: 8px; } .funnel-arrow { display: none; } .funnel-card { min-width: 45%; } }
         @media (max-width: 768px) { .sidebar { width: 60px !important; } .sidebar-text { display: none; } .main-content { margin-left: 60px !important; } .funnel-card { min-width: 100%; } }
         .table-row-hover:hover { background: #fafafa; }
@@ -283,45 +281,75 @@
                             <span class="ml-auto text-sm text-gray-500">共 {{ filteredRecordCount }} 条</span>
                         </div>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
-                        <table class="w-full min-w-[1100px]">
+                    
+                    <!-- 表格：优化了列宽与自适应 -->
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <table class="w-full table-fixed">
+                            <colgroup>
+                                <col class="w-10">      <!-- 复选框 -->
+                                <col class="w-24">      <!-- 公司：稍微加宽 -->
+                                <col class="w-24">      <!-- 职位 -->
+                                <col class="w-16">      <!-- 类别 -->
+                                <col class="w-14">      <!-- 地点 -->
+                                <col class="w-20">      <!-- 投递日期 -->
+                                <col class="w-20">      <!-- 当前进度 -->
+                                <col class="w-28">      <!-- 备注：做窄一点 -->
+                                <col class="w-24">      <!-- 操作 -->
+                            </colgroup>
                             <thead>
                                 <tr class="text-left text-xs text-gray-500 font-semibold border-b border-gray-200">
-                                    <th class="px-3 py-3 w-10"><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="accent-purple-600"></th>
-                                    <th class="px-3 py-3">公司</th>
-                                    <th class="px-3 py-3">职位</th>
-                                    <th class="px-3 py-3">类别</th>
-                                    <th class="px-3 py-3">地点</th>
-                                    <th class="px-3 py-3">投递日期</th>
-                                    <th class="px-3 py-3">当前进度</th>
-                                    <th class="px-3 py-3">备注</th>
-                                    <th class="px-3 py-3">操作</th>
+                                    <th class="px-2 py-3"><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="accent-purple-600"></th>
+                                    <th class="px-2 py-3">公司</th>
+                                    <th class="px-2 py-3">职位</th>
+                                    <th class="px-2 py-3">类别</th>
+                                    <th class="px-2 py-3">地点</th>
+                                    <th class="px-2 py-3">投递日期</th>
+                                    <th class="px-2 py-3">当前进度</th>
+                                    <th class="px-2 py-3">备注</th>
+                                    <th class="px-2 py-3">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <template v-if="filteredRecords.length > 0">
                                     <tr v-for="app in paginatedRecords" :key="app.id" class="border-b border-gray-100 table-row-hover">
-                                        <td class="px-3 py-2.5"><input type="checkbox" v-model="selectedIds" :value="app.id" class="accent-purple-600"></td>
-                                        <td class="px-3 py-2.5 font-medium text-gray-800">{{ app.company }}</td>
-                                        <td class="px-3 py-2.5 text-gray-600">{{ app.position }}</td>
-                                        <td class="px-3 py-2.5"><span v-if="app.category" class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ app.category }}</span><span v-else class="text-xs text-gray-400">未分类</span></td>
-                                        <td class="px-3 py-2.5 text-gray-600">{{ app.location || '-' }}</td>
-                                        <td class="px-3 py-2.5 text-gray-600">{{ app.date || '-' }}</td>
-                                        <td class="px-3 py-2.5">
+                                        <td class="px-2 py-2.5"><input type="checkbox" v-model="selectedIds" :value="app.id" class="accent-purple-600"></td>
+                                        <td class="px-2 py-2.5 font-medium text-gray-800 truncate" :title="app.company">{{ app.company }}</td>
+                                        <td class="px-2 py-2.5 text-gray-600 truncate" :title="app.position">{{ app.position }}</td>
+                                        <td class="px-2 py-2.5">
+                                            <span v-if="app.category" class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full truncate block text-center">{{ app.category }}</span>
+                                            <span v-else class="text-xs text-gray-400">-</span>
+                                        </td>
+                                        <td class="px-2 py-2.5 text-gray-600 truncate" :title="app.location">{{ app.location || '-' }}</td>
+                                        <td class="px-2 py-2.5 text-gray-600 text-xs">{{ app.date || '-' }}</td>
+                                        <td class="px-2 py-2.5">
                                             <span class="tag" :class="getStatusClass(app.status)">{{ app.status || '待投递' }}</span>
                                             <span v-if="isAssessmentStatus(app.status) && app.assessmentCompleted" class="ml-1 text-xs text-green-600">✅</span>
                                             <span v-else-if="isAssessmentStatus(app.status) && app.assessmentDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
                                             <span v-if="isAIInterviewStatus(app.status) && app.aiInterviewCompleted" class="ml-1 text-xs text-green-600">✅</span>
                                             <span v-else-if="isAIInterviewStatus(app.status) && app.aiInterviewDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
                                         </td>
-                                        <td class="px-3 py-2.5"><span class="expandable-cell cursor-pointer" :title="app.note || ''" @click="toggleExpandNote(app.id)">{{ app.note || '-' }}</span><div v-if="expandedNotes.has(app.id)" class="text-xs text-gray-500 mt-1 whitespace-normal">{{ app.note }}</div></td>
-                                        <td class="px-3 py-2.5"><div class="flex gap-1"><button class="px-2 py-1 text-xs border border-purple-300 text-purple-600 rounded hover:bg-purple-50 transition-colors" @click="openEditModalFromRecord(app.id)">✏️ 编辑</button><button class="px-2 py-1 text-xs border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors" @click="deleteRecord(app.id)">🗑 删除</button></div></td>
+                                        <td class="px-2 py-2.5">
+                                            <!-- 备注列：只显示一行，点击展开，避免撑宽表格 -->
+                                            <div class="text-xs text-gray-500 truncate cursor-pointer" :title="app.note || ''" @click="toggleExpandNote(app.id)">
+                                                {{ app.note || '-' }}
+                                            </div>
+                                            <div v-if="expandedNotes.has(app.id)" class="text-xs text-gray-600 mt-1 whitespace-normal break-all bg-gray-50 p-1 rounded">
+                                                {{ app.note }}
+                                            </div>
+                                        </td>
+                                        <td class="px-2 py-2.5">
+                                            <div class="flex flex-col gap-1">
+                                                <button class="text-xs border border-purple-300 text-purple-600 rounded px-1.5 py-0.5 hover:bg-purple-50 transition-colors" @click="openEditModalFromRecord(app.id)">✏️ 编辑</button>
+                                                <button class="text-xs border border-red-200 text-red-500 rounded px-1.5 py-0.5 hover:bg-red-50 transition-colors" @click="deleteRecord(app.id)">🗑 删除</button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </template>
                                 <template v-else><tr><td colspan="9" class="px-3 py-8 text-center text-gray-400">没有匹配的记录</td></tr></template>
                             </tbody>
                         </table>
                     </div>
+                    
                     <div class="flex items-center justify-between mt-4 flex-wrap gap-2">
                         <div class="flex items-center gap-2">
                             <button v-if="selectedIds.length > 0" class="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" @click="batchDeleteRecords">🗑 批量删除（{{ selectedIds.length }}）</button>
@@ -600,7 +628,6 @@
                 });
                 watch(recordFilters, () => { currentRecordPage.value = 1; });
 
-                // 已投公司统计：AI面试不算面试中公司
                 const stats = computed(() => {
                     const all = applications.value;
                     return {
@@ -611,12 +638,9 @@
                     };
                 });
 
-                // ✅ 关键改动：AI面试计入「笔试/测评」，不计入「面试中」
                 const funnelStats = computed(() => {
                     const total = applications.value.filter(a => a.status !== '待投递').length;
-                    // 测评/笔试 = 测评 + 笔试 + AI面试
                     const assessment = applications.value.filter(a => isAssessmentStatus(a.status) || isAIInterviewStatus(a.status)).length;
-                    // 面试中 = 仅普通面试（一面/二面/HR面/终面）
                     const interviewing = applications.value.filter(a => isInterviewStatus(a.status)).length;
                     const offer = applications.value.filter(a => a.status === 'Offer').length;
                     const rejected = applications.value.filter(a => a.status === '拒信').length;
