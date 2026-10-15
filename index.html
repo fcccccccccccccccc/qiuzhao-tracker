@@ -148,7 +148,7 @@
                         </div>
                     </div>
 
-                    <!-- 已过期未完成（置顶显示） -->
+                    <!-- 已过期未完成 -->
                     <div v-if="expiredItems.length > 0" class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm border-2 border-red-200">
                         <h2 class="text-lg font-semibold text-red-600 mb-3">⚠️ 已过期未完成（{{ expiredItems.length }}）</h2>
                         <div v-for="(item, i) in expiredItems" :key="i" class="assessment-item">
@@ -352,6 +352,8 @@
                                             <span v-else-if="isAssessmentStatus(app.status) && app.assessmentDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
                                             <span v-if="isAIInterviewStatus(app.status) && app.aiInterviewCompleted" class="ml-1 text-xs text-green-600">✅</span>
                                             <span v-else-if="isAIInterviewStatus(app.status) && app.aiInterviewDeadline" class="ml-1 text-xs text-orange-600">⏰</span>
+                                            <span v-if="isInterviewStatus(app.status) && app.interviewCompleted" class="ml-1 text-xs text-green-600">✅</span>
+                                            <span v-else-if="isInterviewStatus(app.status) && app.interviewDate" class="ml-1 text-xs text-orange-600">⏰</span>
                                         </td>
                                         <td class="px-2 py-2.5">
                                             <div class="text-xs text-gray-500 truncate cursor-pointer" :title="app.note || ''" @click="toggleExpandNote(app.id)">
@@ -454,7 +456,10 @@
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="editForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="面试拒绝">面试拒绝</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
-                        <div v-if="isInterviewStatus(editForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div v-if="isInterviewStatus(editForm.status)" class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="editForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                            <div><label class="text-xs font-medium text-gray-600">面试完成时间</label><input v-model="editForm.interviewCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        </div>
                         <div v-if="isAssessmentStatus(editForm.status)" class="grid grid-cols-2 gap-3">
                             <div><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="editForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                             <div><label class="text-xs font-medium text-gray-600">测评完成时间</label><input v-model="editForm.assessmentCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
@@ -483,7 +488,10 @@
                         <div><label class="text-xs font-medium text-gray-600">工作地点</label><input v-model="recordForm.location" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         <div><label class="text-xs font-medium text-gray-600">投递日期</label><input v-model="recordForm.date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                         <div><label class="text-xs font-medium text-gray-600">当前进度</label><select v-model="recordForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"><option value="待投递">待投递</option><option value="已投递">已投递</option><option value="测评">测评</option><option value="笔试">笔试</option><option value="AI面试">AI面试</option><option value="一面">一面</option><option value="二面">二面</option><option value="HR面">HR面</option><option value="终面">终面</option><option value="Offer">Offer</option><option value="面试拒绝">面试拒绝</option><option value="拒信">拒信</option><option value="已签约">已签约</option></select></div>
-                        <div v-if="isInterviewStatus(recordForm.status)"><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        <div v-if="isInterviewStatus(recordForm.status)" class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs font-medium text-gray-600">面试时间</label><input v-model="recordForm.interviewDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                            <div><label class="text-xs font-medium text-gray-600">面试完成时间</label><input v-model="recordForm.interviewCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
+                        </div>
                         <div v-if="isAssessmentStatus(recordForm.status)" class="grid grid-cols-2 gap-3">
                             <div><label class="text-xs font-medium text-gray-600">测评截止时间</label><input v-model="recordForm.assessmentDeadline" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
                             <div><label class="text-xs font-medium text-gray-600">测评完成时间</label><input v-model="recordForm.assessmentCompleted" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg mt-1 text-sm"></div>
@@ -601,8 +609,8 @@
                 const currentPage = ref('总览');
                 const expandedNotes = reactive(new Set());
 
-                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '', aiInterviewDeadline: '', aiInterviewCompleted: '' });
-                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', assessmentDeadline: '', assessmentCompleted: '', aiInterviewDeadline: '', aiInterviewCompleted: '' });
+                const editForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', note: '', interviewDate: '', interviewCompleted: '', assessmentDeadline: '', assessmentCompleted: '', aiInterviewDeadline: '', aiInterviewCompleted: '' });
+                const recordForm = reactive({ id: '', company: '', position: '', category: '', location: '', date: '', status: '待投递', jobDescription: '', note: '', interviewDate: '', interviewCompleted: '', assessmentDeadline: '', assessmentCompleted: '', aiInterviewDeadline: '', aiInterviewCompleted: '' });
                 const recordFilters = reactive({ company: '', location: '', category: '', status: '' });
                 const selectedIds = ref([]);
                 const selectAll = ref(false);
@@ -671,12 +679,14 @@
                     return { applied: total, assessment, interviewing, offer, rejected, assessmentRate: safeRate(assessment), interviewRate: safeRate(interviewing), offerRate: safeRate(offer), rejectRate: safeRate(rejected) };
                 });
 
+                // 近期面试：只显示未完成的面试
                 const recentInterviews = computed(() => {
                     const today = new Date();
                     today.setHours(0,0,0,0);
                     return applications.value
                         .filter(app => {
                             if (!isInterviewStatus(app.status)) return false;
+                            if (app.interviewCompleted) return false; // 已完成不显示
                             if (!app.interviewDate) return true;
                             const d = new Date(app.interviewDate);
                             d.setHours(0,0,0,0);
@@ -760,13 +770,15 @@
                 const upcomingAlerts = computed(() => {
                     const alerts = [];
                     applications.value.forEach(app => {
-                        if (app.interviewDate && isInterviewStatus(app.status)) {
+                        // 面试提醒（未完成）
+                        if (app.interviewDate && isInterviewStatus(app.status) && !app.interviewCompleted) {
                             const d = new Date(app.interviewDate);
                             const diff = d - new Date();
                             if (diff > 0 && diff < 3 * 24 * 60 * 60 * 1000) {
                                 alerts.push({ text: `${app.status} ${app.interviewDate} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
+                        // 测评截止（未完成）
                         if (app.assessmentDeadline && isAssessmentStatus(app.status) && !app.assessmentCompleted) {
                             const d = new Date(app.assessmentDeadline);
                             const diff = d - new Date();
@@ -774,6 +786,7 @@
                                 alerts.push({ text: `${app.status}截止 ${app.assessmentDeadline} ${app.company} ${app.position}`, urgent: diff < 24 * 60 * 60 * 1000 });
                             }
                         }
+                        // AI面试截止（未完成）
                         if (app.aiInterviewDeadline && isAIInterviewStatus(app.status) && !app.aiInterviewCompleted) {
                             const d = new Date(app.aiInterviewDeadline);
                             const diff = d - new Date();
@@ -785,7 +798,7 @@
                     return alerts.slice(0, 5);
                 });
 
-                // 已过期未完成（测评/AI面/普通面试）
+                // 已过期未完成（测评/AI面/普通面试）—— 已完成的都不算过期
                 const expiredItems = computed(() => {
                     const today = new Date();
                     today.setHours(0,0,0,0);
@@ -793,7 +806,7 @@
                     applications.value.forEach(app => {
                         if (['面试拒绝', '拒信', '已签约', 'Offer'].includes(app.status)) return;
 
-                        // 测评/笔试过期
+                        // 测评/笔试过期（未完成）
                         if (isAssessmentStatus(app.status) && app.assessmentDeadline && !app.assessmentCompleted) {
                             const d = new Date(app.assessmentDeadline);
                             d.setHours(0,0,0,0);
@@ -805,7 +818,7 @@
                                 });
                             }
                         }
-                        // AI面试过期
+                        // AI面试过期（未完成）
                         if (isAIInterviewStatus(app.status) && app.aiInterviewDeadline && !app.aiInterviewCompleted) {
                             const d = new Date(app.aiInterviewDeadline);
                             d.setHours(0,0,0,0);
@@ -817,8 +830,8 @@
                                 });
                             }
                         }
-                        // 普通面试过期
-                        if (isInterviewStatus(app.status) && app.interviewDate) {
+                        // 普通面试过期（未完成）
+                        if (isInterviewStatus(app.status) && app.interviewDate && !app.interviewCompleted) {
                             const d = new Date(app.interviewDate);
                             d.setHours(0,0,0,0);
                             if (d < today) {
@@ -864,6 +877,7 @@
                     editForm.status = app.status || '待投递';
                     editForm.note = app.note || '';
                     editForm.interviewDate = app.interviewDate || '';
+                    editForm.interviewCompleted = app.interviewCompleted || '';
                     editForm.assessmentDeadline = app.assessmentDeadline || '';
                     editForm.assessmentCompleted = app.assessmentCompleted || '';
                     editForm.aiInterviewDeadline = app.aiInterviewDeadline || '';
@@ -882,9 +896,11 @@
                         };
                         if (!isInterviewStatus(editForm.status)) {
                             updated.interviewDate = '';
+                            updated.interviewCompleted = '';
                             updated.progressHistory = (applications.value[idx].progressHistory || []).filter(h => !isInterviewStatus(h.status));
                         } else {
                             updated.interviewDate = editForm.interviewDate || '';
+                            updated.interviewCompleted = editForm.interviewCompleted || '';
                             let history = applications.value[idx].progressHistory || [];
                             history = history.filter(h => h.status !== editForm.status);
                             if (editForm.interviewDate) history.push({ status: editForm.status, date: editForm.interviewDate });
@@ -915,7 +931,8 @@
                     recordForm.id = ''; recordForm.company = ''; recordForm.position = '';
                     recordForm.category = ''; recordForm.location = ''; recordForm.date = '';
                     recordForm.status = '待投递'; recordForm.jobDescription = ''; recordForm.note = '';
-                    recordForm.interviewDate = ''; recordForm.assessmentDeadline = ''; recordForm.assessmentCompleted = '';
+                    recordForm.interviewDate = ''; recordForm.interviewCompleted = '';
+                    recordForm.assessmentDeadline = ''; recordForm.assessmentCompleted = '';
                     recordForm.aiInterviewDeadline = ''; recordForm.aiInterviewCompleted = '';
                     recordModalTitle.value = '新增投递';
                     showRecordModal.value = true;
@@ -933,6 +950,7 @@
                     recordForm.jobDescription = app.jobDescription || '';
                     recordForm.note = app.note || '';
                     recordForm.interviewDate = app.interviewDate || '';
+                    recordForm.interviewCompleted = app.interviewCompleted || '';
                     recordForm.assessmentDeadline = app.assessmentDeadline || '';
                     recordForm.assessmentCompleted = app.assessmentCompleted || '';
                     recordForm.aiInterviewDeadline = app.aiInterviewDeadline || '';
@@ -953,6 +971,7 @@
                         jobDescription: recordForm.jobDescription.trim(), note: recordForm.note.trim(),
                     };
                     baseData.interviewDate = isInterviewStatus(recordForm.status) ? (recordForm.interviewDate || '') : '';
+                    baseData.interviewCompleted = isInterviewStatus(recordForm.status) ? (recordForm.interviewCompleted || '') : '';
                     baseData.assessmentDeadline = isAssessmentStatus(recordForm.status) ? (recordForm.assessmentDeadline || '') : '';
                     baseData.assessmentCompleted = isAssessmentStatus(recordForm.status) ? (recordForm.assessmentCompleted || '') : '';
                     baseData.aiInterviewDeadline = isAIInterviewStatus(recordForm.status) ? (recordForm.aiInterviewDeadline || '') : '';
@@ -1011,7 +1030,6 @@
                     else expandedNotes.add(id);
                 }
 
-                // 标记为面试拒绝
                 function markAsRejected(id) {
                     const idx = applications.value.findIndex(a => a.id === id);
                     if (idx === -1) return;
@@ -1024,13 +1042,13 @@
                         aiInterviewDeadline: '',
                         aiInterviewCompleted: '',
                         interviewDate: '',
+                        interviewCompleted: '',
                         progressHistory: [],
                     };
                     localStorage.setItem('qiuzhao_applications_v2', JSON.stringify(applications.value));
                     loadData();
                 }
 
-                // 导出 Excel
                 function exportToExcel() {
                     const data = filteredRecords.value.length > 0 ? filteredRecords.value : applications.value;
                     if (data.length === 0) {
@@ -1054,7 +1072,8 @@
                         '测评完成时间': app.assessmentCompleted || '',
                         'AI面试截止时间': app.aiInterviewDeadline || '',
                         'AI面试完成时间': app.aiInterviewCompleted || '',
-                        '普通面试时间': app.interviewDate || '',
+                        '面试时间': app.interviewDate || '',
+                        '面试完成时间': app.interviewCompleted || '',
                         '岗位描述': app.jobDescription || '',
                         '备注': app.note || '',
                     }));
@@ -1063,7 +1082,7 @@
                     worksheet['!cols'] = [
                         { wch: 16 }, { wch: 22 }, { wch: 10 }, { wch: 16 }, { wch: 12 },
                         { wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 16 },
-                        { wch: 14 }, { wch: 30 }, { wch: 30 },
+                        { wch: 14 }, { wch: 14 }, { wch: 30 }, { wch: 30 },
                     ];
 
                     const workbook = XLSX.utils.book_new();
@@ -1138,6 +1157,7 @@
                         location: a.location || '', note: a.note || '',
                         jobDescription: a.jobDescription || '', progressHistory: a.progressHistory || [],
                         interviewDate: a.interviewDate || '',
+                        interviewCompleted: a.interviewCompleted || '',
                         assessmentDeadline: a.assessmentDeadline || '',
                         assessmentCompleted: a.assessmentCompleted || '',
                         aiInterviewDeadline: a.aiInterviewDeadline || '',
